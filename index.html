@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DropExpress | Pro Store</title>
+    <title>DropExpress | Boutique Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     
@@ -12,9 +12,9 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000000; color: #ffffff; overflow-x: hidden; }
         .cart-open { transform: translateX(0) !important; }
-        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: transform 0.3s ease; }
+        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: all 0.3s ease; }
         input::placeholder { color: #4b5563; }
-        #paypal-button-container { width: 100%; min-height: 100px; }
+        #paypal-button-container { width: 100%; min-height: 150px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -31,7 +31,7 @@
 
     <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-[450px] bg-black border-l border-white/10 shadow-2xl z-50 transition-transform transform translate-x-full flex flex-col">
         <div class="p-6 border-b border-white/10 flex justify-between items-center">
-            <h2 class="font-bold text-xl">Détails de la commande</h2>
+            <h2 class="font-bold text-xl text-white">Détails de la commande</h2>
             <button onclick="toggleCart()" class="text-3xl text-gray-400 hover:text-white">&times;</button>
         </div>
 
@@ -55,16 +55,8 @@
         </div>
     </div>
 
-    <header class="py-16 px-6 text-center max-w-4xl mx-auto">
-        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight text-white">
-            Le futur du shopping <br>
-            <span class="text-blue-500 font-black">commence ici.</span>
-        </h1>
-        <p class="text-gray-400 text-lg md:text-xl font-medium">Articles exclusifs. Livraison mondiale. Paiement sécurisé.</p>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-6 pb-24 text-white">
-        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-white">
             </div>
     </main>
 
@@ -80,14 +72,13 @@
             cart.push({ name, price });
             saveCart();
             renderCart();
-            toggleCart();
+            if(!cartSidebar.classList.contains('cart-open')) toggleCart();
         };
 
         window.removeFromCart = (index) => {
             cart.splice(index, 1);
             saveCart();
             renderCart();
-            // Si panier vide après suppression, on nettoie PayPal
             if(cart.length === 0) document.getElementById('paypal-button-container').innerHTML = "";
         };
 
@@ -105,23 +96,53 @@
             cart.forEach((item, index) => {
                 total += item.price;
                 container.innerHTML += `
-                    <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5 mb-2">
                         <span class="text-sm font-bold text-white">${item.name}</span>
                         <div class="flex items-center gap-4 text-blue-500">
                             <span class="font-bold">${item.price}€</span>
-                            <button onclick="removeFromCart(${index})" class="text-red-500 font-bold">✕</button>
+                            <button onclick="removeFromCart(${index})" class="text-red-500">✕</button>
                         </div>
                     </div>`;
             });
             totalEl.innerText = total.toFixed(2) + " €";
 
-            // Si panier contient quelque chose, on affiche PayPal
-            if(total > 0) {
-                initPayPalOnce();
+            // Déclenche PayPal si le panier n'est pas vide
+            if (total > 0) {
+                renderPayPalButton();
             }
         }
 
-        // CHARGER LES PRODUITS
+        let paypalInjected = false;
+        function renderPayPalButton() {
+            const container = document.getElementById('paypal-button-container');
+            if (paypalInjected || typeof paypal === 'undefined') return;
+            
+            paypalInjected = true;
+            paypal.Buttons({
+                style: { layout: 'vertical', color: 'blue', shape: 'rect' },
+                createOrder: (data, actions) => {
+                    const totalStr = document.getElementById('cart-total').innerText.split(' ')[0];
+                    return actions.order.create({
+                        purchase_units: [{ amount: { value: totalStr } }]
+                    });
+                },
+                onApprove: async (data, actions) => {
+                    const details = await actions.order.capture();
+                    // Enregistre l'adresse dans Firestore
+                    await addDoc(collection(db, "orders"), {
+                        nom: document.getElementById('c-name').value,
+                        email: document.getElementById('c-email').value,
+                        adresse: document.getElementById('c-address').value,
+                        articles: cart,
+                        total: document.getElementById('cart-total').innerText,
+                        date: new Date().toISOString()
+                    });
+                    alert('Merci ' + details.payer.name.given_name + ' ! Commande validée.');
+                    cart = []; saveCart(); location.reload();
+                }
+            }).render('#paypal-button-container');
+        }
+
         async function loadProducts() {
             const querySnapshot = await getDocs(collection(db, "products"));
             const grid = document.getElementById('product-grid');
@@ -142,35 +163,6 @@
                         </div>
                     </div>`;
             });
-        }
-
-        // INITIALISATION PAYPAL SÉCURISÉE
-        let paypalRendered = false;
-        function initPayPalOnce() {
-            if (paypalRendered || typeof paypal === 'undefined') return;
-            paypalRendered = true;
-            
-            paypal.Buttons({
-                style: { layout: 'vertical', color: 'blue', shape: 'rect' },
-                createOrder: (data, actions) => {
-                    const totalValue = document.getElementById('cart-total').innerText.split(' ')[0];
-                    return actions.order.create({ purchase_units: [{ amount: { value: totalValue } }] });
-                },
-                onApprove: async (data, actions) => {
-                    const details = await actions.order.capture();
-                    // Enregistrement Firestore
-                    await addDoc(collection(db, "orders"), {
-                        nom: document.getElementById('c-name').value,
-                        email: document.getElementById('c-email').value,
-                        adresse: document.getElementById('c-address').value,
-                        produits: cart,
-                        total: document.getElementById('cart-total').innerText,
-                        date: new Date().toLocaleString()
-                    });
-                    alert('Merci ' + details.payer.name.given_name + ' ! Commande enregistrée.');
-                    cart = []; saveCart(); location.reload();
-                }
-            }).render('#paypal-button-container');
         }
 
         loadProducts();
