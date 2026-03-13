@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DropExpress | Boutique Pro</title>
+    <title>DropExpress | Pro Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     
@@ -12,9 +12,9 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000000; color: #ffffff; overflow-x: hidden; }
         .cart-open { transform: translateX(0) !important; }
-        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: all 0.3s ease; }
+        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: transform 0.3s ease; }
         input::placeholder { color: #4b5563; }
-        #paypal-button-container { min-height: 150px; }
+        #paypal-button-container { width: 100%; min-height: 100px; }
     </style>
 </head>
 <body>
@@ -31,40 +31,41 @@
 
     <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-[450px] bg-black border-l border-white/10 shadow-2xl z-50 transition-transform transform translate-x-full flex flex-col">
         <div class="p-6 border-b border-white/10 flex justify-between items-center">
-            <h2 class="font-bold text-xl text-white">Ma Commande</h2>
-            <button onclick="toggleCart()" class="text-3xl text-gray-400">&times;</button>
+            <h2 class="font-bold text-xl">Détails de la commande</h2>
+            <button onclick="toggleCart()" class="text-3xl text-gray-400 hover:text-white">&times;</button>
         </div>
 
         <div id="cart-items" class="p-6 space-y-3 max-h-40 overflow-y-auto border-b border-white/5 text-white"></div>
 
         <div class="p-6 space-y-4 flex-1 overflow-y-auto bg-[#050505]">
-            <p class="text-blue-500 font-bold text-[10px] uppercase tracking-[0.2em]">Livraison</p>
-            <input type="text" id="c-name" placeholder="Nom complet" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none">
-            <input type="email" id="c-email" placeholder="Email" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none">
-            <input type="text" id="c-address" placeholder="Adresse complète" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none">
+            <p class="text-blue-500 font-bold text-[10px] uppercase tracking-[0.2em]">Informations Client</p>
+            <input type="text" id="c-name" placeholder="Nom complet" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-blue-500">
+            <input type="email" id="c-email" placeholder="Email" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-blue-500">
+            <input type="text" id="c-address" placeholder="Adresse complète (Rue, Ville, CP)" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-blue-500">
         </div>
 
         <div class="p-6 border-t border-white/10 bg-[#0a0a0a] space-y-4">
-            <div class="flex justify-between font-bold text-xl px-2">
-                <span class="text-white">Total</span>
+            <div class="flex justify-between font-bold text-xl px-2 mb-2 text-white">
+                <span>Total à régler</span>
                 <span id="cart-total" class="text-blue-500">0.00 €</span>
             </div>
+            
             <div id="paypal-button-container"></div>
+            <p class="text-[10px] text-center text-gray-500 italic">Paiement 100% sécurisé</p>
         </div>
     </div>
 
     <header class="py-16 px-6 text-center max-w-4xl mx-auto">
-        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight text-white">
             Le futur du shopping <br>
             <span class="text-blue-500 font-black">commence ici.</span>
         </h1>
-        <p class="text-gray-400 text-lg md:text-xl">Articles exclusifs. Paiement sécurisé. Livraison express.</p>
+        <p class="text-gray-400 text-lg md:text-xl font-medium">Articles exclusifs. Livraison mondiale. Paiement sécurisé.</p>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 pb-24">
+    <main class="max-w-7xl mx-auto px-6 pb-24 text-white">
         <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <p class="text-center col-span-full py-20 text-gray-500 animate-pulse text-lg">Connexion à la boutique...</p>
-        </div>
+            </div>
     </main>
 
     <script type="module">
@@ -86,6 +87,8 @@
             cart.splice(index, 1);
             saveCart();
             renderCart();
+            // Si panier vide après suppression, on nettoie PayPal
+            if(cart.length === 0) document.getElementById('paypal-button-container').innerHTML = "";
         };
 
         function saveCart() {
@@ -96,9 +99,9 @@
         function renderCart() {
             const container = document.getElementById('cart-items');
             const totalEl = document.getElementById('cart-total');
-            if(!container) return;
             container.innerHTML = "";
             let total = 0;
+
             cart.forEach((item, index) => {
                 total += item.price;
                 container.innerHTML += `
@@ -106,77 +109,72 @@
                         <span class="text-sm font-bold text-white">${item.name}</span>
                         <div class="flex items-center gap-4 text-blue-500">
                             <span class="font-bold">${item.price}€</span>
-                            <button onclick="removeFromCart(${index})" class="text-red-500">✕</button>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 font-bold">✕</button>
                         </div>
                     </div>`;
             });
             totalEl.innerText = total.toFixed(2) + " €";
+
+            // Si panier contient quelque chose, on affiche PayPal
+            if(total > 0) {
+                initPayPalOnce();
+            }
         }
 
-        // --- CHARGEMENT DES PRODUITS ---
+        // CHARGER LES PRODUITS
         async function loadProducts() {
+            const querySnapshot = await getDocs(collection(db, "products"));
             const grid = document.getElementById('product-grid');
-            try {
-                const querySnapshot = await getDocs(collection(db, "products"));
-                grid.innerHTML = "";
-                if(querySnapshot.empty) {
-                    grid.innerHTML = "<p class='col-span-full text-center'>Aucun produit trouvé.</p>";
-                    return;
+            grid.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                const p = doc.data();
+                grid.innerHTML += `
+                    <div class="product-card rounded-[2.5rem] p-5">
+                        <div class="aspect-square rounded-[2rem] overflow-hidden bg-[#111] mb-6 border border-white/5">
+                            <img src="${p.image}" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="font-bold text-xl px-2 text-white">${p.name}</h3>
+                        <div class="flex justify-between items-center mt-4 px-2">
+                            <span class="text-blue-500 font-black text-2xl">${p.price}€</span>
+                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-6 py-3 rounded-2xl font-bold active:scale-95 transition">
+                                + Ajouter
+                            </button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // INITIALISATION PAYPAL SÉCURISÉE
+        let paypalRendered = false;
+        function initPayPalOnce() {
+            if (paypalRendered || typeof paypal === 'undefined') return;
+            paypalRendered = true;
+            
+            paypal.Buttons({
+                style: { layout: 'vertical', color: 'blue', shape: 'rect' },
+                createOrder: (data, actions) => {
+                    const totalValue = document.getElementById('cart-total').innerText.split(' ')[0];
+                    return actions.order.create({ purchase_units: [{ amount: { value: totalValue } }] });
+                },
+                onApprove: async (data, actions) => {
+                    const details = await actions.order.capture();
+                    // Enregistrement Firestore
+                    await addDoc(collection(db, "orders"), {
+                        nom: document.getElementById('c-name').value,
+                        email: document.getElementById('c-email').value,
+                        adresse: document.getElementById('c-address').value,
+                        produits: cart,
+                        total: document.getElementById('cart-total').innerText,
+                        date: new Date().toLocaleString()
+                    });
+                    alert('Merci ' + details.payer.name.given_name + ' ! Commande enregistrée.');
+                    cart = []; saveCart(); location.reload();
                 }
-                querySnapshot.forEach((doc) => {
-                    const p = doc.data();
-                    grid.innerHTML += `
-                        <div class="product-card rounded-[2.5rem] p-5">
-                            <div class="aspect-square rounded-[2rem] overflow-hidden bg-[#111] mb-6 border border-white/5">
-                                <img src="${p.image}" class="w-full h-full object-cover">
-                            </div>
-                            <h3 class="font-bold text-xl px-2 text-white">${p.name}</h3>
-                            <div class="flex justify-between items-center mt-4 px-2">
-                                <span class="text-blue-500 font-black text-2xl">${p.price}€</span>
-                                <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-6 py-3 rounded-2xl font-bold active:scale-90 transition">
-                                    + Ajouter
-                                </button>
-                            </div>
-                        </div>`;
-                });
-            } catch (e) {
-                console.error(e);
-                grid.innerHTML = "<p class='col-span-full text-center text-red-500 font-bold'>Problème de connexion avec Firestore. Vérifiez vos règles de sécurité.</p>";
-            }
+            }).render('#paypal-button-container');
         }
 
-        // --- INITIALISATION PAYPAL ---
-        function initPayPal() {
-            if (typeof paypal !== 'undefined') {
-                paypal.Buttons({
-                    style: { layout: 'vertical', color: 'blue', shape: 'rect' },
-                    createOrder: (data, actions) => {
-                        const total = document.getElementById('cart-total').innerText.split(' ')[0];
-                        if(parseFloat(total) <= 0) { alert("Le panier est vide"); return; }
-                        return actions.order.create({ purchase_units: [{ amount: { value: total } }] });
-                    },
-                    onApprove: async (data, actions) => {
-                        const details = await actions.order.capture();
-                        await addDoc(collection(db, "orders"), {
-                            name: document.getElementById('c-name').value,
-                            items: cart,
-                            total: document.getElementById('cart-total').innerText,
-                            date: new Date().toISOString()
-                        });
-                        alert('Commande validée !');
-                        cart = []; saveCart(); location.reload();
-                    }
-                }).render('#paypal-button-container');
-            } else {
-                setTimeout(initPayPal, 1000); // Réessayer si PayPal n'est pas encore là
-            }
-        }
-
-        // Lancement direct
         loadProducts();
         renderCart();
-        saveCart();
-        initPayPal();
     </script>
 </body>
 </html>
