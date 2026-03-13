@@ -3,53 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DropExpress | Boutique Pro</title>
+    <title>DropExpress | Boutique</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000000; color: #ffffff; }
         .cart-open { transform: translateX(0) !important; }
+        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body>
 
-    <nav class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
-            <span class="text-xl font-extrabold tracking-tighter italic">DROP<span class="text-blue-600">EXPRESS</span></span>
-            <button onclick="toggleCart()" class="relative p-2 bg-slate-100 rounded-full">
-                <span>🛒</span>
-                <span id="cart-count" class="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+    <nav class="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <span class="text-2xl font-black tracking-tighter italic italic">DROP<span class="text-blue-500">EXPRESS</span></span>
+            <button onclick="toggleCart()" class="relative p-2">
+                <span class="text-2xl">🛒</span>
+                <span id="cart-count" class="absolute -top-1 -right-1 bg-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white">0</span>
             </button>
         </div>
     </nav>
 
-    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transition-transform transform translate-x-full flex flex-col">
-        <div class="p-6 border-b flex justify-between items-center">
-            <h2 class="font-bold text-xl">Mon Panier</h2>
-            <button onclick="toggleCart()" class="text-2xl">&times;</button>
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-80 bg-black border-l border-white/10 shadow-2xl z-50 transition-transform transform translate-x-full flex flex-col">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center">
+            <h2 class="font-bold text-xl text-white">Mon Panier</h2>
+            <button onclick="toggleCart()" class="text-3xl text-white">&times;</button>
         </div>
-        <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+        <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4 text-white">
             </div>
-        <div class="p-6 border-t bg-slate-50">
-            <div class="flex justify-between mb-4 font-bold text-lg">
+        <div class="p-6 border-t border-white/10 bg-[#0a0a0a]">
+            <div class="flex justify-between mb-6 font-bold text-xl text-white">
                 <span>Total</span>
                 <span id="cart-total">0.00 €</span>
             </div>
-            <button onclick="checkoutWhatsApp()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-green-200 active:scale-95 transition-transform">
+            <button onclick="checkoutWhatsApp()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold active:scale-95 transition-transform">
                 Commander sur WhatsApp
             </button>
         </div>
     </div>
 
-    <header class="py-12 px-6 text-center max-w-4xl mx-auto">
-        <h1 class="text-4xl font-extrabold tracking-tight mb-4">Style & Performance.</h1>
-        <p class="text-slate-500">Expédition express sur toute la collection.</p>
+    <header class="py-16 px-6 text-center max-w-4xl mx-auto">
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
+            Le futur du shopping <br>
+            <span class="text-blue-500 font-black">commence ici.</span>
+        </h1>
+        <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
+            Découvrez notre sélection exclusive de produits premium expédiés en un temps record.
+        </p>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 pb-20">
-        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <main class="max-w-7xl mx-auto px-6 pb-24">
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-white">
             </div>
     </main>
+
+    <footer class="py-12 text-center text-gray-600 text-sm border-t border-white/5">
+        <p>&copy; 2026 DropExpress. Hébergé sur Vercel & Firestore.</p>
+    </footer>
 
     <script type="module">
         import { db, collection, getDocs } from "./firebase.js";
@@ -58,20 +68,15 @@
         const grid = document.getElementById('product-grid');
         const cartSidebar = document.getElementById('cart-sidebar');
 
-        // Toggle Panier
-        window.toggleCart = () => {
-            cartSidebar.classList.toggle('cart-open');
-        };
+        window.toggleCart = () => cartSidebar.classList.toggle('cart-open');
 
-        // Ajouter au panier
         window.addToCart = (name, price) => {
             cart.push({ name, price });
             saveCart();
             renderCart();
-            toggleCart(); // Ouvre le panier quand on ajoute
+            toggleCart();
         };
 
-        // Supprimer du panier
         window.removeFromCart = (index) => {
             cart.splice(index, 1);
             saveCart();
@@ -92,45 +97,41 @@
             cart.forEach((item, index) => {
                 total += item.price;
                 container.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                    <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5 text-white">
                         <div>
-                            <p class="font-bold text-sm text-slate-800">${item.name}</p>
-                            <p class="text-xs text-blue-600 font-bold">${item.price} €</p>
+                            <p class="font-bold text-sm">${item.name}</p>
+                            <p class="text-blue-500 font-bold">${item.price} €</p>
                         </div>
-                        <button onclick="removeFromCart(${index})" class="text-red-400 text-xs uppercase font-bold">Supprimer</button>
+                        <button onclick="removeFromCart(${index})" class="text-red-500 text-xs font-bold uppercase tracking-widest">Suppr.</button>
                     </div>
                 `;
             });
             totalEl.innerText = total.toFixed(2) + " €";
         }
 
-        // Checkout WhatsApp
         window.checkoutWhatsApp = () => {
-            if(cart.length === 0) return alert("Votre panier est vide !");
-            const phone = "33612345678"; // ⚠️ METS TON NUMÉRO ICI (format international)
-            let message = "Bonjour DropExpress ! Je souhaite commander :\n\n";
+            if(cart.length === 0) return alert("Le panier est vide !");
+            const phone = "33612345678"; // ⚠️ METS TON NUMÉRO ICI
+            let message = "Salut DropExpress ! Je veux commander :\n\n";
             cart.forEach(item => message += `- ${item.name} (${item.price}€)\n`);
             message += `\nTotal : ${document.getElementById('cart-total').innerText}`;
-            
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank');
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
         };
 
-        // Charger les produits de Firestore
         async function loadProducts() {
             const querySnapshot = await getDocs(collection(db, "products"));
             grid.innerHTML = "";
             querySnapshot.forEach((doc) => {
                 const p = doc.data();
                 grid.innerHTML += `
-                    <div class="bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 group">
-                        <div class="aspect-square rounded-[1.5rem] overflow-hidden bg-slate-50 mb-4">
-                            <img src="${p.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="product-card rounded-[2.5rem] p-5 shadow-2xl group transition-all">
+                        <div class="aspect-square rounded-[2rem] overflow-hidden bg-[#111] mb-6 border border-white/5">
+                            <img src="${p.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                         </div>
-                        <h3 class="font-bold text-lg px-2">${p.name}</h3>
-                        <div class="flex justify-between items-center mt-3 px-2">
-                            <span class="text-blue-600 font-black text-xl">${p.price}€</span>
-                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold active:scale-90 transition">
+                        <h3 class="font-bold text-xl px-2 mb-2 text-white">${p.name}</h3>
+                        <div class="flex justify-between items-center mt-4 px-2">
+                            <span class="text-blue-500 font-black text-2xl">${p.price}€</span>
+                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-6 py-3 rounded-2xl font-bold active:scale-90 transition">
                                 + Ajouter
                             </button>
                         </div>
