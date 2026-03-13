@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | DropExpress</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-[Inter] p-6">
+
+    <div class="max-w-lg mx-auto bg-white rounded-3xl shadow-xl p-8">
+        <h1 class="text-2xl font-black mb-6 text-center">AJOUTER UN PRODUIT</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold mb-1">Nom du produit</label>
+                <input type="text" id="p-name" placeholder="ex: Sneakers Air" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold mb-1">Prix (€)</label>
+                <input type="number" id="p-price" placeholder="ex: 89" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold mb-1">URL de l'image</label>
+                <input type="text" id="p-image" placeholder="Lien vers l'image" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-[10px] text-gray-400 mt-1 italic">Astuce : Utilise un lien Unsplash ou Pinterest pour tester.</p>
+            </div>
+
+            <button id="btn-add" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-transform mt-4">
+                Publier sur la boutique
+            </button>
+        </div>
+
+        <div id="status" class="mt-4 text-center text-sm font-medium"></div>
+    </div>
+
+    <div class="text-center mt-8">
+        <a href="index.html" class="text-gray-400 underline text-sm">Retourner à la boutique</a>
+    </div>
+
+    <script type="module">
+        import { db, collection, addDoc } from "./firebase.js";
+
+        const btn = document.getElementById('btn-add');
+        const status = document.getElementById('status');
+
+        btn.onclick = async () => {
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const image = document.getElementById('p-image').value;
+
+            if(!name || !price) {
+                status.innerText = "❌ Remplis le nom et le prix !";
+                status.className = "mt-4 text-center text-red-500";
+                return;
+            }
+
+            status.innerText = "Envoi en cours...";
+            status.className = "mt-4 text-center text-blue-500";
+
+            try {
+                await addDoc(collection(db, "products"), {
+                    name: name,
+                    price: parseFloat(price),
+                    image: image || "https://via.placeholder.com/300",
+                    createdAt: new Date()
+                });
+
+                status.innerText = "✅ Produit ajouté avec succès !";
+                status.className = "mt-4 text-center text-green-500";
+                
+                // Vider les champs
+                document.getElementById('p-name').value = "";
+                document.getElementById('p-price').value = "";
+                document.getElementById('p-image').value = "";
+            } catch (e) {
+                status.innerText = "❌ Erreur : " + e.message;
+            }
+        };
+    </script>
+</body>
+</html>
