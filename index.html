@@ -7,13 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=AUfeN86c9k2YFqp7kPOXvXN0VlG2m_Y-TfP6m_7rUv_0X0&currency=EUR"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000000; color: #ffffff; overflow-x: hidden; }
         .cart-open { transform: translateX(0) !important; }
-        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; }
+        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: all 0.3s ease; }
         input::placeholder { color: #4b5563; }
     </style>
 </head>
@@ -22,54 +21,48 @@
     <nav class="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/10">
         <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
             <span class="text-2xl font-black tracking-tighter italic">DROP<span class="text-blue-500">EXPRESS</span></span>
-            <button onclick="toggleCart()" class="relative p-2 bg-white/5 rounded-full">
+            <button onclick="toggleCart()" class="relative p-3 bg-white/5 rounded-full active:scale-90 transition">
                 <span class="text-xl">🛒</span>
                 <span id="cart-count" class="absolute -top-1 -right-1 bg-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
             </button>
         </div>
     </nav>
 
-    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-black border-l border-white/10 shadow-2xl z-50 transition-transform transform translate-x-full flex flex-col">
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-[450px] bg-black border-l border-white/10 shadow-2xl z-50 transition-transform transform translate-x-full flex flex-col">
         <div class="p-6 border-b border-white/10 flex justify-between items-center">
-            <h2 class="font-bold text-xl">Ma Commande</h2>
-            <button onclick="toggleCart()" class="text-3xl">&times;</button>
+            <h2 class="font-bold text-xl">Détails de la commande</h2>
+            <button onclick="toggleCart()" class="text-3xl text-gray-400 hover:text-white">&times;</button>
         </div>
 
-        <div id="cart-items" class="p-6 space-y-4 max-h-40 overflow-y-auto border-b border-white/5"></div>
+        <div id="cart-items" class="p-6 space-y-3 max-h-40 overflow-y-auto border-b border-white/5"></div>
 
-        <div class="p-6 space-y-3 flex-1 overflow-y-auto bg-[#050505]">
-            <p class="text-blue-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Informations de livraison</p>
-            <input type="text" id="c-name" placeholder="Nom complet" class="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-blue-500">
-            <input type="email" id="c-email" placeholder="Email" class="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-blue-500">
-            <input type="text" id="c-address" placeholder="Adresse (N°, Rue)" class="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-blue-500">
-            <div class="grid grid-cols-2 gap-3">
-                <input type="text" id="c-cp" placeholder="Code Postal" class="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-blue-500">
-                <input type="text" id="c-city" placeholder="Ville" class="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-blue-500">
-            </div>
+        <div class="p-6 space-y-4 flex-1 overflow-y-auto bg-[#050505]">
+            <p class="text-blue-500 font-bold text-[10px] uppercase tracking-[0.2em]">Adresse de livraison</p>
+            <input type="text" id="c-name" placeholder="Nom complet" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-blue-500">
+            <input type="email" id="c-email" placeholder="Email de contact" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-blue-500">
+            <input type="text" id="c-address" placeholder="Adresse complète (Rue, Ville, CP)" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-blue-500">
         </div>
 
         <div class="p-6 border-t border-white/10 bg-[#0a0a0a] space-y-4">
-            <div class="flex justify-between font-bold text-xl px-2">
-                <span>Total</span>
+            <div class="flex justify-between font-bold text-xl px-2 mb-2">
+                <span>Total à régler</span>
                 <span id="cart-total" class="text-blue-500">0.00 €</span>
             </div>
             
-            <button onclick="payStripe()" class="w-full bg-white text-black py-4 rounded-2xl font-bold active:scale-95 transition">
-                Payer par Carte
-            </button>
             <div id="paypal-button-container"></div>
+            <p class="text-[10px] text-center text-gray-500 italic">Paiement sécurisé via PayPal & Stripe</p>
         </div>
     </div>
 
     <header class="py-16 px-6 text-center max-w-4xl mx-auto">
         <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
             Le futur du shopping <br>
-            <span class="text-blue-500">commence ici.</span>
+            <span class="text-blue-500 font-black">commence ici.</span>
         </h1>
-        <p class="text-gray-400 text-lg md:text-xl">Sélection premium. Paiement sécurisé. Livraison express.</p>
+        <p class="text-gray-400 text-lg md:text-xl">Articles exclusifs. Livraison mondiale. Paiement 100% sécurisé.</p>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 pb-24 text-white">
+    <main class="max-w-7xl mx-auto px-6 pb-24">
         <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
     </main>
 
@@ -85,7 +78,7 @@
             cart.push({ name, price });
             saveCart();
             renderCart();
-            toggleCart();
+            if(!cartSidebar.classList.contains('cart-open')) toggleCart();
         };
 
         window.removeFromCart = (index) => {
@@ -108,43 +101,43 @@
             cart.forEach((item, index) => {
                 total += item.price;
                 container.innerHTML += `
-                    <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
-                        <span class="text-sm font-bold">${item.name}</span>
+                    <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <span class="font-bold text-sm">${item.name}</span>
                         <div class="flex items-center gap-4">
                             <span class="text-blue-500 font-bold">${item.price}€</span>
-                            <button onclick="removeFromCart(${index})" class="text-red-500 text-xs">✕</button>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 text-xs font-bold">✕</button>
                         </div>
                     </div>`;
             });
             totalEl.innerText = total.toFixed(2) + " €";
         }
 
-        // --- PAIEMENT PAYPAL ---
+        // INITIALISATION PAYPAL
         paypal.Buttons({
+            style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'paypal' },
             createOrder: (data, actions) => {
                 const total = document.getElementById('cart-total').innerText.split(' ')[0];
+                if(parseFloat(total) <= 0) { alert("Le panier est vide"); return; }
                 return actions.order.create({ purchase_units: [{ amount: { value: total } }] });
             },
             onApprove: async (data, actions) => {
                 const details = await actions.order.capture();
-                // Enregistrer la commande dans Firestore
+                
+                // Sauvegarde de la commande dans Firestore
                 await addDoc(collection(db, "orders"), {
-                    customer: document.getElementById('c-name').value,
-                    address: document.getElementById('c-address').value,
+                    customer_name: document.getElementById('c-name').value,
+                    customer_email: document.getElementById('c-email').value,
+                    customer_address: document.getElementById('c-address').value,
                     items: cart,
-                    status: "Payé (PayPal)"
+                    total: document.getElementById('cart-total').innerText,
+                    date: new Date().toISOString(),
+                    status: "Payé"
                 });
-                alert('Merci ' + details.payer.name.given_name + ' ! Commande validée.');
+
+                alert('Merci ' + details.payer.name.given_name + ' ! Ta commande est validée.');
                 cart = []; saveCart(); location.reload();
             }
         }).render('#paypal-button-container');
-
-        // --- PAIEMENT STRIPE (REDIRECTION) ---
-        window.payStripe = () => {
-            if(cart.length === 0) return alert("Panier vide !");
-            // Remplace par ton lien "Stripe Payment Link" créé sur ton dashboard Stripe
-            window.open('https://buy.stripe.com/test_ton_lien', '_blank');
-        };
 
         async function loadProducts() {
             const querySnapshot = await getDocs(collection(db, "products"));
@@ -153,7 +146,7 @@
             querySnapshot.forEach((doc) => {
                 const p = doc.data();
                 grid.innerHTML += `
-                    <div class="product-card rounded-[2.5rem] p-5 group transition-all">
+                    <div class="product-card rounded-[2.5rem] p-5 group shadow-xl">
                         <div class="aspect-square rounded-[2rem] overflow-hidden bg-[#111] mb-6 border border-white/5">
                             <img src="${p.image}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-700">
                         </div>
