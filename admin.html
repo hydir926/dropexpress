@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: #fff; }
-        .order-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; transition: 0.3s; }
+        .order-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; }
     </style>
 </head>
 <body class="p-6">
@@ -16,85 +16,60 @@
     <div class="max-w-5xl mx-auto">
         <header class="flex justify-between items-center mb-12">
             <div>
-                <h1 class="text-3xl font-black italic tracking-tighter">DROP<span class="text-blue-500">EXPRESS</span> ADMIN</h1>
-                <p class="text-gray-500 text-sm">Tableau de bord des ventes</p>
+                <h1 class="text-3xl font-black italic">DROP<span class="text-blue-500">EXPRESS</span> ADMIN</h1>
+                <p class="text-gray-500 text-sm">Gestion des commandes</p>
             </div>
-            <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-full font-bold text-sm transition">
-                🔄 Actualiser
-            </button>
+            <button onclick="location.reload()" class="bg-blue-600 px-5 py-2 rounded-full font-bold text-sm">Actualiser</button>
         </header>
 
         <div id="orders-list" class="space-y-6">
-            <p class="text-center text-gray-500">Chargement des données Firebase...</p>
+            <p class="text-center text-gray-500">Chargement...</p>
         </div>
     </div>
 
     <script type="module">
+        // Importation corrigée
         import { db, collection, getDocs, query, orderBy } from "./firebase.js";
 
         async function loadOrders() {
             const container = document.getElementById('orders-list');
             try {
+                // Cette ligne nécessite que query et orderBy soient dans firebase.js
                 const q = query(collection(db, "orders"), orderBy("date", "desc"));
                 const querySnapshot = await getDocs(q);
                 
                 if (querySnapshot.empty) {
-                    container.innerHTML = "<div class='text-center py-20 border border-dashed border-white/10 rounded-3xl text-gray-500'>Aucune commande enregistrée.</div>";
+                    container.innerHTML = "<p class='text-center text-gray-500'>Aucune commande.</p>";
                     return;
                 }
 
                 container.innerHTML = "";
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const dateAction = data.date ? new Date(data.date).toLocaleString('fr-FR') : "Date inconnue";
+                    const items = data.articles || [];
                     
-                    // Sécurisation de la liste des articles
-                    let articlesHtml = "";
-                    if (data.articles && Array.isArray(data.articles)) {
-                        articlesHtml = data.articles.map(item => `
-                            <li class="flex justify-between py-1 border-b border-white/5 last:border-0">
-                                <span class="text-gray-300">${item.name}</span>
-                                <span class="font-bold">${item.price}€</span>
-                            </li>
-                        `).join('');
-                    } else {
-                        articlesHtml = "<li class='text-gray-500'>Aucun article listé</li>";
-                    }
-
                     container.innerHTML += `
-                        <div class="order-card p-6 md:p-8 flex flex-col md:flex-row gap-8">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="bg-green-500/20 text-green-400 text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase">Payé</span>
-                                    <span class="text-gray-500 text-xs">${dateAction}</span>
+                        <div class="order-card p-6 border border-white/5 mb-4">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h2 class="text-xl font-bold">${data.client || data.nom || 'Client'}</h2>
+                                    <p class="text-blue-400 text-sm italic">📍 ${data.adresse || 'Pas d'adresse'}</p>
                                 </div>
-                                <h2 class="text-2xl font-bold mb-2 text-white">${data.client || data.nom || 'Client Anonyme'}</h2>
-                                <p class="text-blue-400 text-sm font-medium mb-4 italic">📍 ${data.adresse || 'Adresse manquante'}</p>
-                                <p class="text-gray-500 text-xs">📧 ${data.email || 'Email non fourni'}</p>
+                                <span class="text-xs text-gray-500">${data.date ? new Date(data.date).toLocaleString() : ''}</span>
                             </div>
-
-                            <div class="w-full md:w-72 bg-white/5 p-5 rounded-2xl border border-white/10">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Détail Panier</p>
-                                <ul class="text-sm space-y-1 mb-4">
-                                    ${articlesHtml}
+                            <div class="bg-white/5 p-4 rounded-xl">
+                                <ul class="text-sm mb-2">
+                                    ${items.map(i => `<li>- ${i.name} (${i.price}€)</li>`).join('')}
                                 </ul>
-                                <div class="pt-3 border-t border-white/10 flex justify-between items-center italic">
-                                    <span class="text-xs text-gray-400 font-bold uppercase">Total</span>
-                                    <span class="text-xl font-black text-blue-500">${data.total || '0.00 €'}</span>
-                                </div>
+                                <p class="text-right font-black text-blue-500">Total: ${data.total}</p>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
             } catch (error) {
-                console.error("Erreur Admin:", error);
-                container.innerHTML = `<div class="bg-red-500/10 border border-red-500/50 p-6 rounded-2xl text-red-500 text-center">
-                    <p class="font-bold">Erreur Firebase</p>
-                    <p class="text-xs mt-2 italic">${error.message}</p>
-                </div>`;
+                console.error(error);
+                container.innerHTML = "<p class='text-red-500 text-center'>Erreur : " + error.message + "</p>";
             }
         }
-
         loadOrders();
     </script>
 </body>
