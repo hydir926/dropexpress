@@ -1,126 +1,15 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | DropExpress</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: #fff; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; }
-        .tab-btn.active { background: #2563eb; color: white; }
-    </style>
-</head>
-<body class="p-4 md:p-8">
-
-    <div class="max-w-5xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-            <h1 class="text-3xl font-black italic uppercase">Drop<span class="text-blue-500">Express</span> Admin</h1>
-            <div class="flex bg-white/5 p-1 rounded-full border border-white/10">
-                <button onclick="switchTab('orders')" id="btn-orders" class="tab-btn active px-6 py-2 rounded-full font-bold text-sm transition">Commandes</button>
-                <button onclick="switchTab('products')" id="btn-products" class="tab-btn px-6 py-2 rounded-full font-bold text-sm transition">Stock / Produits</button>
-            </div>
-        </header>
-
-        <div id="section-orders" class="space-y-6">
-            <div id="orders-list" class="grid gap-6">Chargement des ventes...</div>
+container.innerHTML += `
+<div class="card p-6">
+    <div class="flex justify-between items-start">
+        <div>
+            <p class="text-blue-500 font-black text-xl">${o.client}</p>
+            <p class="text-gray-400 text-sm">📍 ${o.adresse}</p>
+            <p class="text-blue-400 text-sm font-bold">📞 ${o.telephone || "Non fourni"}</p>
         </div>
-
-        <div id="section-products" class="hidden space-y-8">
-            <div class="card p-6 border-blue-500/30">
-                <h2 class="text-xl font-bold mb-4">Ajouter un produit</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input type="text" id="p-name" placeholder="Nom du modèle" class="bg-black border border-white/10 p-3 rounded-xl">
-                    <input type="number" id="p-price" placeholder="Prix (€)" class="bg-black border border-white/10 p-3 rounded-xl">
-                    <input type="text" id="p-img" placeholder="Lien image (URL)" class="bg-black border border-white/10 p-3 rounded-xl">
-                    <button onclick="addProduct()" class="md:col-span-3 bg-blue-600 py-3 rounded-xl font-bold">Publier le produit</button>
-                </div>
-            </div>
-            <div id="products-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
+        <span class="text-xs text-gray-700">${new Date(o.date).toLocaleDateString()}</span>
     </div>
-
-    <script type="module">
-        import { db, collection, getDocs, addDoc, query, orderBy, deleteDoc, doc } from "./firebase.js";
-
-        // SÉCURITÉ
-        const pass = prompt("Mot de passe :");
-        if(pass !== "AMIR2026") { window.location.href="index.html"; }
-
-        // NAVIGATION
-        window.switchTab = (tab) => {
-            document.getElementById('section-orders').classList.toggle('hidden', tab !== 'orders');
-            document.getElementById('section-products').classList.toggle('hidden', tab !== 'products');
-            document.getElementById('btn-orders').classList.toggle('active', tab === 'orders');
-            document.getElementById('btn-products').classList.toggle('active', tab === 'products');
-            if(tab === 'products') loadProducts(); else loadOrders();
-        }
-
-        // CHARGER LES COMMANDES
-        async function loadOrders() {
-            const container = document.getElementById('orders-list');
-            const q = query(collection(db, "orders"), orderBy("date", "desc"));
-            const snap = await getDocs(q);
-            container.innerHTML = "";
-            snap.forEach(d => {
-                const o = d.data();
-                container.innerHTML += `
-                <div class="card p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <p class="text-blue-500 font-black text-xl">${o.client}</p>
-                            <p class="text-gray-400 text-sm">📍 ${o.adresse || "Pas d'adresse"}</p>
-                            <p class="text-blue-400 text-sm font-bold">📞 ${o.telephone || "Pas de numéro"}</p>
-                            <p class="text-gray-600 text-xs mt-1">📧 ${o.email}</p>
-                        </div>
-                        <span class="text-xs text-gray-700">${new Date(o.date).toLocaleDateString()}</span>
-                    </div>
-                    <div class="bg-white/5 p-4 rounded-xl flex justify-between items-center">
-                        <ul class="text-xs text-gray-400">
-                            ${o.articles ? o.articles.map(a => `<li>• ${a.name}</li>`).join('') : ''}
-                        </ul>
-                        <span class="text-2xl font-black">${o.total}</span>
-                    </div>
-                </div>`;
-            });
-        }
-
-        // GESTION PRODUITS (AJOUTER / SUPPRIMER)
-        async function loadProducts() {
-            const container = document.getElementById('products-list');
-            const snap = await getDocs(collection(db, "products"));
-            container.innerHTML = "";
-            snap.forEach(d => {
-                const p = d.data();
-                container.innerHTML += `
-                <div class="card p-4 flex justify-between items-center">
-                    <div class="flex items-center gap-4">
-                        <img src="${p.image}" class="w-12 h-12 rounded-lg object-cover">
-                        <div><p class="font-bold text-sm">${p.name}</p><p class="text-blue-500 text-sm">${p.price}€</p></div>
-                    </div>
-                    <button onclick="deleteProduct('${d.id}')" class="text-red-500 text-xs font-bold bg-red-500/10 px-3 py-2 rounded-lg">Supprimer</button>
-                </div>`;
-            });
-        }
-
-        window.addProduct = async () => {
-            const name = document.getElementById('p-name').value;
-            const price = document.getElementById('p-price').value;
-            const image = document.getElementById('p-img').value;
-            if(!name || !price) return alert("Champs vides !");
-            await addDoc(collection(db, "products"), { name, price: parseFloat(price), image });
-            loadProducts();
-        };
-
-        window.deleteProduct = async (id) => {
-            if(confirm("Supprimer l'article ?")) {
-                await deleteDoc(doc(db, "products", id));
-                loadProducts();
-            }
-        };
-
-        loadOrders();
-    </script>
-</body>
-</html>
+    <div class="mt-4 flex justify-between items-center bg-white/5 p-4 rounded-xl">
+        <span class="text-xs text-gray-500">${o.articles.map(a => a.name).join(', ')}</span>
+        <span class="text-2xl font-black">${o.total}</span>
+    </div>
+</div>`;
