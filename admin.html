@@ -6,44 +6,48 @@
     <title>Admin | DropExpress</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #050505; color: #fff; font-family: sans-serif; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; }
+        body { background: #050505; color: #fff; font-family: sans-serif; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 2rem; }
+        input, textarea { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 15px; border-radius: 15px; outline: none; }
         .tab-btn.active { background: #2563eb; color: white; }
-        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; }
     </style>
 </head>
-<body class="p-8">
-    <div class="max-w-5xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-black italic uppercase">Admin <span class="text-blue-500">Panel</span></h1>
+<body class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-black italic uppercase">Admin <span class="text-blue-500">Panel</span></h1>
             <div class="flex bg-white/5 p-1 rounded-full border border-white/10">
-                <button onclick="switchTab('orders')" id="btn-orders" class="tab-btn active px-6 py-2 rounded-full font-bold text-sm">Commandes</button>
-                <button onclick="switchTab('products')" id="btn-products" class="tab-btn px-6 py-2 rounded-full font-bold text-sm">Produits</button>
+                <button onclick="switchTab('orders')" id="btn-orders" class="tab-btn active px-6 py-2 rounded-full font-bold text-xs">Commandes</button>
+                <button onclick="switchTab('products')" id="btn-products" class="tab-btn px-6 py-2 rounded-full font-bold text-xs">Produits</button>
             </div>
         </header>
 
-        <div id="section-orders" class="space-y-6">
-            <div id="orders-list" class="grid gap-6">Chargement...</div>
-        </div>
-
-        <div id="section-products" class="hidden space-y-8">
-            <div class="card p-6 border-blue-500/30">
-                <h2 class="text-xl font-bold mb-4">Ajouter un produit</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input type="text" id="p-name" placeholder="Nom">
-                    <input type="number" id="p-price" placeholder="Prix">
-                    <input type="text" id="p-img" placeholder="URL Image">
-                    <button onclick="addProduct()" class="md:col-span-3 bg-blue-600 py-3 rounded-xl font-bold">Publier</button>
+        <div id="section-products" class="space-y-6">
+            <div class="card p-6 border-blue-500/20">
+                <h2 class="text-lg font-bold mb-4 italic">Ajouter une pépite</h2>
+                <div class="space-y-4">
+                    <input type="text" id="p-name" placeholder="Nom du modèle">
+                    <input type="number" id="p-price" placeholder="Prix (€)">
+                    <textarea id="p-desc" placeholder="Description détaillée..." class="h-24"></textarea>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-500 uppercase mb-2 ml-1">Photo du produit</p>
+                        <input type="file" id="p-file" class="text-xs border-none">
+                    </div>
+                    <button onclick="addProduct()" id="btn-add" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase text-xs tracking-widest">Mettre en ligne</button>
                 </div>
             </div>
-            <div id="products-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div id="products-list" class="grid gap-4"></div>
+        </div>
+
+        <div id="section-orders" class="hidden space-y-4">
+            <div id="orders-list" class="grid gap-4"></div>
         </div>
     </div>
 
     <script type="module">
-        import { db, collection, getDocs, addDoc, query, orderBy, deleteDoc, doc, onSnapshot } from "./firebase.js";
+        import { db, storage, collection, addDoc, deleteDoc, doc, onSnapshot, ref, uploadBytes, getDownloadURL, query, orderBy } from "./firebase.js";
         
-        const pass = prompt("Code Admin :");
+        const pass = prompt("Accès Admin :");
         if(pass !== "AMIR2026") window.location.href="index.html";
 
         window.switchTab = (tab) => {
@@ -51,53 +55,51 @@
             document.getElementById('section-products').classList.toggle('hidden', tab !== 'products');
             document.getElementById('btn-orders').classList.toggle('active', tab === 'orders');
             document.getElementById('btn-products').classList.toggle('active', tab === 'products');
-            if(tab === 'products') loadProducts();
-        }
+        };
 
-        onSnapshot(query(collection(db, "orders"), orderBy("date", "desc")), snap => {
-            const container = document.getElementById('orders-list');
-            container.innerHTML = "";
+        window.addProduct = async () => {
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const desc = document.getElementById('p-desc').value;
+            const file = document.getElementById('p-file').files[0];
+            const btn = document.getElementById('btn-add');
+
+            if(!name || !price || !desc || !file) return alert("Complète tous les champs !");
+            btn.innerText = "CHARGEMENT..."; btn.disabled = true;
+
+            try {
+                const sRef = ref(storage, `products/${Date.now()}_${file.name}`);
+                await uploadBytes(sRef, file);
+                const url = await getDownloadURL(sRef);
+
+                await addDoc(collection(db, "products"), {
+                    name, price: parseFloat(price), description: desc, image: url, date: new Date().toISOString()
+                });
+                alert("Produit ajouté !"); location.reload();
+            } catch(e) { alert(e.message); btn.disabled = false; btn.innerText = "METTRE EN LIGNE"; }
+        };
+
+        onSnapshot(collection(db, "products"), snap => {
+            const list = document.getElementById('products-list'); list.innerHTML = "";
             snap.forEach(d => {
-                const o = d.data();
-                container.innerHTML += `
-                <div class="card p-6 flex justify-between items-start">
-                    <div>
-                        <p class="text-blue-500 font-black text-xl">${o.client}</p>
-                        <p class="text-gray-400 text-sm">📍 ${o.adresse}</p>
-                        <p class="text-blue-400 text-sm font-bold">📞 ${o.telephone || "N/A"}</p>
-                        <p class="text-xs text-gray-600 mt-2">${o.articles.map(a => a.name).join(', ')}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-2xl font-black">${o.total}</p>
-                        <p class="text-[10px] text-gray-500 uppercase">${new Date(o.date).toLocaleDateString()}</p>
-                    </div>
+                const p = d.data();
+                list.innerHTML += `<div class="card p-4 flex justify-between items-center border-white/5">
+                    <div class="flex items-center gap-4"><img src="${p.image}" class="w-12 h-12 rounded-xl object-cover"><div><p class="font-bold text-xs uppercase">${p.name}</p><p class="text-blue-500 text-sm font-black">${p.price}€</p></div></div>
+                    <button onclick="deleteP('${d.id}')" class="text-red-500 text-[10px] font-bold bg-red-500/10 px-4 py-2 rounded-lg">Supprimer</button>
                 </div>`;
             });
         });
 
-        async function loadProducts() {
-            const container = document.getElementById('products-list');
-            const snap = await getDocs(collection(db, "products"));
-            container.innerHTML = "";
+        window.deleteP = async (id) => { if(confirm("Supprimer ?")) await deleteDoc(doc(db, "products", id)); };
+
+        onSnapshot(query(collection(db, "orders"), orderBy("date", "desc")), snap => {
+            const list = document.getElementById('orders-list'); list.innerHTML = "";
             snap.forEach(d => {
-                const p = d.data();
-                container.innerHTML += `<div class="card p-4 flex justify-between items-center">
-                    <div class="flex items-center gap-4"><img src="${p.image}" class="w-12 h-12 rounded-lg object-cover"><div><p class="font-bold text-sm">${p.name}</p><p class="text-blue-500 text-sm">${p.price}€</p></div></div>
-                    <button onclick="deleteProduct('${d.id}')" class="text-red-500 text-xs bg-red-500/10 px-3 py-2 rounded-lg">Supprimer</button>
-                </div>`;
+                const o = d.data();
+                list.innerHTML += `<div class="card p-5 border-white/5"><div class="flex justify-between mb-2"><p class="font-black text-blue-500 text-lg uppercase">${o.client}</p><p class="font-black">${o.total}</p></div>
+                <p class="text-gray-400 text-sm italic">📍 ${o.adresse}</p><p class="text-blue-400 font-bold text-xs">📞 ${o.telephone || 'N/A'}</p></div>`;
             });
-        }
-
-        window.addProduct = async () => {
-            await addDoc(collection(db, "products"), { 
-                name: document.getElementById('p-name').value, 
-                price: parseFloat(document.getElementById('p-price').value), 
-                image: document.getElementById('p-img').value 
-            });
-            loadProducts();
-        };
-
-        window.deleteProduct = async (id) => { if(confirm("Supprimer ?")) { await deleteDoc(doc(db, "products", id)); loadProducts(); } };
+        });
     </script>
 </body>
 </html>
