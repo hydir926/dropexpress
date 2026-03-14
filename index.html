@@ -5,85 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DropExpress | Boutique</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
     <style>
-        body { background-color: #000; color: #fff; font-family: sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000; color: #fff; margin: 0; }
         .cart-sidebar { position: fixed; right: 0; top: 0; height: 100%; width: 100%; max-width: 450px; background: #0a0a0a; transform: translateX(100%); transition: 0.4s; z-index: 1000; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; overflow-y: auto; }
         .cart-open { transform: translateX(0); }
-        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 12px; border-radius: 12px; }
+        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 2rem; padding: 1.5rem; transition: 0.3s; }
+        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; }
         #paypal-button-container { min-height: 150px; overflow: visible !important; }
     </style>
 </head>
 <body>
-    <nav class="p-5 border-b border-white/10 flex justify-between items-center sticky top-0 bg-black/80 backdrop-blur-md z-50">
+    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-lg border-b border-white/10 p-5 flex justify-between items-center">
         <span class="text-2xl font-black italic">DROP<span class="text-blue-500">EXPRESS</span></span>
-        <div class="flex gap-4">
-            <a href="connexion.html" id="auth-link" class="text-sm font-bold border border-white/10 px-4 py-2 rounded-full">Connexion</a>
-            <button onclick="toggleCart()" class="bg-blue-600 px-6 py-2 rounded-full font-bold">🛒 (<span id="cart-count">0</span>)</button>
+        <div class="flex gap-4 items-center">
+            <a href="connexion.html" id="user-btn" class="text-sm font-bold border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 transition">Connexion</a>
+            <button onclick="toggleCart()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold transition">🛒 (<span id="cart-count">0</span>)</button>
         </div>
     </nav>
 
     <div id="cart-sidebar" class="cart-sidebar">
         <div class="p-6 border-b border-white/10 flex justify-between items-center">
-            <h2 class="text-xl font-bold">Mon Panier</h2>
-            <button onclick="toggleCart()" class="text-3xl">&times;</button>
+            <h2 class="text-xl font-bold">Ma Commande</h2>
+            <button onclick="toggleCart()" class="text-3xl text-gray-500">&times;</button>
         </div>
-        <div id="cart-items" class="p-6 space-y-4"></div>
+        <div id="cart-items" class="p-6 flex-1 space-y-4"></div>
         <div class="p-6 bg-[#050505] space-y-3">
-            <p class="text-blue-500 text-[10px] font-bold uppercase">Livraison</p>
-            <input type="text" id="cust-name" placeholder="Nom complet">
-            <input type="email" id="cust-email" placeholder="Email">
-            <input type="tel" id="cust-phone" placeholder="Numéro de téléphone">
-            <input type="text" id="cust-address" placeholder="Adresse complète">
+            <p class="text-blue-500 text-xs font-bold uppercase tracking-widest">Livraison</p>
+            <input type="text" id="cust-name" placeholder="Nom complet" class="w-full p-3 rounded-xl outline-none">
+            <input type="email" id="cust-email" placeholder="Email" class="w-full p-3 rounded-xl outline-none">
+            <input type="tel" id="cust-phone" placeholder="Numéro de téléphone" class="w-full p-3 rounded-xl outline-none">
+            <input type="text" id="cust-address" placeholder="Adresse complète" class="w-full p-3 rounded-xl outline-none">
         </div>
-        <div class="p-6 border-t border-white/10">
-            <div class="flex justify-between text-xl font-bold mb-4"><span>Total</span><span id="cart-total">0.00 €</span></div>
+        <div class="p-6 border-t border-white/10 bg-black">
+            <div class="flex justify-between text-xl font-bold mb-4"><span>Total</span><span id="cart-total" class="text-blue-500">0.00 €</span></div>
             <div id="paypal-button-container"></div>
         </div>
     </div>
 
-    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8" id="product-grid"></main>
+    <main class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-8" id="product-grid"></main>
 
     <script type="module">
-        import { db, collection, getDocs, addDoc, auth, onAuthStateChanged, signOut } from "./firebase.js";
+        import { db, auth, collection, getDocs, addDoc, onAuthStateChanged, signOut } from "./firebase.js";
         let cart = [];
-        window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('cart-open');
 
-        // Gestion de l'affichage utilisateur connecté
         onAuthStateChanged(auth, user => {
-            const link = document.getElementById('auth-link');
+            const btn = document.getElementById('user-btn');
             if(user) {
-                link.innerText = "Déconnexion";
-                link.onclick = () => signOut(auth);
+                btn.innerText = "Déconnexion";
+                btn.onclick = (e) => { e.preventDefault(); signOut(auth); };
                 document.getElementById('cust-email').value = user.email;
+                if(user.displayName) document.getElementById('cust-name').value = user.displayName;
+            } else {
+                btn.innerText = "Connexion";
+                btn.onclick = null;
             }
         });
 
-        window.addToCart = (name, price) => {
-            cart.push({ name, price });
-            updateCart();
-            toggleCart();
-        };
+        window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('cart-open');
+        window.addToCart = (name, price) => { cart.push({ name, price }); updateCart(); toggleCart(); };
 
         function updateCart() {
             const container = document.getElementById('cart-items');
-            let total = 0;
-            container.innerHTML = "";
+            let total = 0; container.innerHTML = "";
             cart.forEach(item => {
                 total += item.price;
-                container.innerHTML += `<div class="flex justify-between bg-white/5 p-3 rounded-xl border border-white/5"><span>${item.name}</span><span class="text-blue-500 font-bold">${item.price}€</span></div>`;
+                container.innerHTML += `<div class="flex justify-between bg-white/5 p-4 rounded-2xl border border-white/5"><span>${item.name}</span><span class="text-blue-500 font-bold">${item.price}€</span></div>`;
             });
             document.getElementById('cart-total').innerText = total.toFixed(2) + " €";
             document.getElementById('cart-count').innerText = cart.length;
-            if(total > 0) initPayPal(total.toFixed(2));
+            if (total > 0) initPayPal(total.toFixed(2));
         }
 
         function initPayPal(totalPrice) {
             document.getElementById('paypal-button-container').innerHTML = "";
             paypal.Buttons({
                 onClick: (data, actions) => {
-                    if(!document.getElementById('cust-name').value || !document.getElementById('cust-address').value || !document.getElementById('cust-phone').value) {
-                        alert("Veuillez remplir les informations de livraison.");
+                    const fields = ['cust-name', 'cust-address', 'cust-phone'];
+                    if(fields.some(id => !document.getElementById(id).value)) {
+                        alert("Veuillez remplir toutes les informations de livraison.");
                         return actions.reject();
                     }
                     return actions.resolve();
@@ -100,7 +101,7 @@
                         total: totalPrice + " €",
                         date: new Date().toISOString()
                     });
-                    alert("Commande réussie !");
+                    alert('Commande validée !');
                     cart = []; updateCart(); toggleCart();
                 }
             }).render('#paypal-button-container');
@@ -110,11 +111,11 @@
         snap.forEach(doc => {
             const p = doc.data();
             document.getElementById('product-grid').innerHTML += `
-                <div class="bg-[#0a0a0a] p-6 rounded-[2rem] border border-white/5 text-center">
+                <div class="product-card text-center">
                     <img src="${p.image}" class="w-full h-64 object-cover rounded-3xl mb-4">
                     <h3 class="text-xl font-bold">${p.name}</h3>
-                    <p class="text-blue-500 text-2xl font-black mt-2">${p.price}€</p>
-                    <button onclick="addToCart('${p.name}', ${p.price})" class="mt-4 bg-white text-black w-full py-3 rounded-xl font-bold">Ajouter au panier</button>
+                    <p class="text-2xl font-black text-blue-500 mt-2">${p.price}€</p>
+                    <button onclick="addToCart('${p.name}', ${p.price})" class="w-full mt-4 bg-white text-black py-3 rounded-xl font-bold hover:bg-gray-200 transition">Ajouter au panier</button>
                 </div>`;
         });
     </script>
