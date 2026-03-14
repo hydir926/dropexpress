@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DropExpress | Boutique Officielle</title>
-    
+    <title>DropExpress | Boutique</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
-    
     <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
-
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000; color: #fff; margin: 0; }
         .cart-sidebar { position: fixed; right: 0; top: 0; height: 100%; width: 100%; max-width: 450px; background: #0a0a0a; transform: translateX(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; }
@@ -21,7 +18,7 @@
 <body>
 
     <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-lg border-b border-white/10 p-5 flex justify-between items-center">
-        <span class="text-2xl font-black tracking-tighter italic text-white">DROP<span class="text-blue-500">EXPRESS</span></span>
+        <span class="text-2xl font-black italic text-white uppercase">Drop<span class="text-blue-500">Express</span></span>
         <button onclick="toggleCart()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold transition">
             🛒 Panier (<span id="cart-count">0</span>)
         </button>
@@ -36,10 +33,11 @@
         <div id="cart-items" class="p-6 flex-1 overflow-y-auto space-y-4"></div>
 
         <div class="p-6 bg-[#050505] space-y-3">
-            <p class="text-blue-500 text-xs font-bold uppercase tracking-widest">Informations de livraison</p>
-            <input type="text" id="cust-name" placeholder="Nom complet" class="w-full p-3 rounded-xl outline-none focus:border-blue-500">
-            <input type="email" id="cust-email" placeholder="Email" class="w-full p-3 rounded-xl outline-none focus:border-blue-500">
-            <input type="text" id="cust-address" placeholder="Adresse et Ville" class="w-full p-3 rounded-xl outline-none focus:border-blue-500">
+            <p class="text-blue-500 text-[10px] font-bold uppercase tracking-widest">Informations de livraison</p>
+            <input type="text" id="cust-name" placeholder="Nom complet" class="w-full p-3 rounded-xl outline-none">
+            <input type="email" id="cust-email" placeholder="Email" class="w-full p-3 rounded-xl outline-none">
+            <input type="tel" id="cust-phone" placeholder="Numéro de téléphone" class="w-full p-3 rounded-xl outline-none">
+            <input type="text" id="cust-address" placeholder="Adresse complète (Rue, Ville, CP)" class="w-full p-3 rounded-xl outline-none">
         </div>
 
         <div class="p-6 border-t border-white/10 bg-black">
@@ -52,15 +50,13 @@
     </div>
 
     <main class="max-w-7xl mx-auto px-6 py-12">
-        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            </div>
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
     </main>
 
     <script type="module">
         import { db, collection, getDocs, addDoc } from "./firebase.js";
 
         let cart = [];
-
         window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('cart-open');
 
         window.addToCart = (name, price) => {
@@ -73,79 +69,73 @@
             const container = document.getElementById('cart-items');
             const totalEl = document.getElementById('cart-total');
             const countEl = document.getElementById('cart-count');
-            
             container.innerHTML = "";
             let total = 0;
-
-            cart.forEach((item, index) => {
+            cart.forEach(item => {
                 total += item.price;
                 container.innerHTML += `
                     <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
-                        <span class="font-bold">${item.name}</span>
+                        <span class="font-bold text-sm">${item.name}</span>
                         <span class="text-blue-500 font-bold">${item.price}€</span>
                     </div>`;
             });
-
             totalEl.innerText = total.toFixed(2) + " €";
             countEl.innerText = cart.length;
-
             if (total > 0) initPayPal(total.toFixed(2));
         }
 
         function initPayPal(totalPrice) {
             const btnContainer = document.getElementById('paypal-button-container');
-            btnContainer.innerHTML = ""; // Reset pour éviter les doublons
-
-            if (typeof paypal !== 'undefined') {
-                paypal.Buttons({
-                    style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' },
-                    createOrder: (data, actions) => {
-                        return actions.order.create({
-                            purchase_units: [{ amount: { value: totalPrice } }]
-                        });
-                    },
-                    onApprove: async (data, actions) => {
-                        const details = await actions.order.capture();
-                        
-                        // Sauvegarde de la commande dans Firebase
-                        await addDoc(collection(db, "orders"), {
-                            client: document.getElementById('cust-name').value,
-                            email: document.getElementById('cust-email').value,
-                            adresse: document.getElementById('cust-address').value,
-                            articles: cart,
-                            total: totalPrice,
-                            status: "PAYÉ",
-                            date: new Date().toISOString()
-                        });
-
-                        alert('Merci ' + details.payer.name.given_name + ' ! Commande validée.');
-                        cart = []; updateCart(); toggleCart();
+            btnContainer.innerHTML = ""; 
+            paypal.Buttons({
+                style: { layout: 'vertical', color: 'blue', shape: 'rect' },
+                onClick: (data, actions) => {
+                    const name = document.getElementById('cust-name').value;
+                    const addr = document.getElementById('cust-address').value;
+                    const phone = document.getElementById('cust-phone').value;
+                    if(!name || !addr || !phone) {
+                        alert("Merci de remplir toutes vos coordonnées de livraison.");
+                        return actions.reject();
                     }
-                }).render('#paypal-button-container');
-            }
+                    return actions.resolve();
+                },
+                createOrder: (data, actions) => {
+                    return actions.order.create({ purchase_units: [{ amount: { value: totalPrice } }] });
+                },
+                onApprove: async (data, actions) => {
+                    const details = await actions.order.capture();
+                    await addDoc(collection(db, "orders"), {
+                        client: document.getElementById('cust-name').value,
+                        email: document.getElementById('cust-email').value,
+                        telephone: document.getElementById('cust-phone').value,
+                        adresse: document.getElementById('cust-address').value,
+                        articles: cart,
+                        total: totalPrice + " €",
+                        date: new Date().toISOString()
+                    });
+                    alert('Commande validée !');
+                    cart = []; updateCart(); toggleCart();
+                }
+            }).render('#paypal-button-container');
         }
 
         async function loadProducts() {
             const grid = document.getElementById('product-grid');
-            const querySnapshot = await getDocs(collection(db, "products"));
+            const snap = await getDocs(collection(db, "products"));
             grid.innerHTML = "";
-            
-            querySnapshot.forEach((doc) => {
+            snap.forEach(doc => {
                 const p = doc.data();
                 grid.innerHTML += `
                     <div class="product-card">
                         <img src="${p.image}" class="w-full h-64 object-cover rounded-3xl mb-4">
-                        <h3 class="text-xl font-bold text-white">${p.name}</h3>
+                        <h3 class="text-xl font-bold">${p.name}</h3>
                         <div class="flex justify-between items-center mt-4">
                             <span class="text-2xl font-black text-blue-500">${p.price}€</span>
-                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-6 py-2 rounded-xl font-bold hover:bg-gray-200 transition">
-                                Ajouter
-                            </button>
+                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-6 py-2 rounded-xl font-bold">Ajouter</button>
                         </div>
                     </div>`;
             });
         }
-
         loadProducts();
     </script>
 </body>
