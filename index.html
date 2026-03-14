@@ -3,96 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DropExpress | Boutique Pro</title>
+    <title>DropExpress | Boutique Officielle</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://www.paypal.com/sdk/js?client-id=AUfeN86c9k2YFqp7kPOXvXN0VlG2m_Y-TfP6m_7rUv_0X0&currency=EUR"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000000; color: #ffffff; overflow-x: hidden; }
-        .cart-open { transform: translateX(0) !important; }
-        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: all 0.3s ease; }
-        input::placeholder { color: #4b5563; }
-        #paypal-button-container { width: 100%; min-height: 100px; }
-        .hidden { display: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000; color: #fff; margin: 0; }
+        .cart-sidebar { position: fixed; right: 0; top: 0; height: 100%; width: 100%; max-width: 450px; background: #0a0a0a; transform: translateX(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; }
+        .cart-open { transform: translateX(0); }
+        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 2rem; padding: 1.5rem; transition: 0.3s; }
+        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; }
     </style>
 </head>
 <body>
 
-    <nav class="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-            <span class="text-2xl font-black tracking-tighter italic">DROP<span class="text-blue-500">EXPRESS</span></span>
-            <button onclick="toggleCart()" class="relative p-3 bg-white/5 rounded-full">
-                <span class="text-xl">🛒</span>
-                <span id="cart-count" class="absolute -top-1 -right-1 bg-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
-            </button>
-        </div>
+    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-lg border-b border-white/10 p-5 flex justify-between items-center">
+        <span class="text-2xl font-black tracking-tighter italic text-white">DROP<span class="text-blue-500">EXPRESS</span></span>
+        <button onclick="toggleCart()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold transition">
+            🛒 Panier (<span id="cart-count">0</span>)
+        </button>
     </nav>
 
-    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-[450px] bg-black border-l border-white/10 shadow-2xl z-50 transition-transform transform translate-x-full flex flex-col">
+    <div id="cart-sidebar" class="cart-sidebar">
         <div class="p-6 border-b border-white/10 flex justify-between items-center">
-            <h2 class="font-bold text-xl">Détails de la commande</h2>
-            <button onclick="toggleCart()" class="text-3xl text-gray-400 hover:text-white">&times;</button>
+            <h2 class="text-xl font-bold">Ma Commande</h2>
+            <button onclick="toggleCart()" class="text-3xl text-gray-500">&times;</button>
         </div>
 
-        <div id="cart-items" class="p-6 space-y-3 max-h-40 overflow-y-auto border-b border-white/5 text-white"></div>
+        <div id="cart-items" class="p-6 flex-1 overflow-y-auto space-y-4"></div>
 
-        <div class="p-6 space-y-4 flex-1 overflow-y-auto bg-[#050505]">
-            <p class="text-blue-500 font-bold text-[10px] uppercase tracking-[0.2em]">Informations Client</p>
-            <input type="text" id="c-name" placeholder="Nom complet" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-blue-500">
-            <input type="email" id="c-email" placeholder="Email" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-blue-500">
-            <input type="text" id="c-address" placeholder="Adresse complète (Rue, Ville, CP)" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-blue-500">
+        <div class="p-6 bg-[#050505] space-y-3">
+            <p class="text-blue-500 text-xs font-bold uppercase tracking-widest">Informations de livraison</p>
+            <input type="text" id="cust-name" placeholder="Nom complet" class="w-full p-3 rounded-xl outline-none focus:border-blue-500">
+            <input type="email" id="cust-email" placeholder="Email" class="w-full p-3 rounded-xl outline-none focus:border-blue-500">
+            <input type="text" id="cust-address" placeholder="Adresse et Ville" class="w-full p-3 rounded-xl outline-none focus:border-blue-500">
         </div>
 
-        <div class="p-6 border-t border-white/10 bg-[#0a0a0a] space-y-4">
-            <div class="flex justify-between font-bold text-xl px-2 mb-2">
-                <span>Total à régler</span>
+        <div class="p-6 border-t border-white/10 bg-black">
+            <div class="flex justify-between text-xl font-bold mb-4">
+                <span>Total</span>
                 <span id="cart-total" class="text-blue-500">0.00 €</span>
             </div>
-            
             <div id="paypal-button-container"></div>
-
-            <button id="fallback-button" onclick="handleFallbackPayment()" class="hidden w-full bg-white text-black py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition">
-                Payer par Carte Bancaire
-            </button>
-
-            <p class="text-[10px] text-center text-gray-500 italic">Paiement 100% sécurisé via SSL</p>
         </div>
     </div>
 
     <main class="max-w-7xl mx-auto px-6 py-12">
-        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-white">
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             </div>
     </main>
 
     <script type="module">
         import { db, collection, getDocs, addDoc } from "./firebase.js";
 
-        let cart = JSON.parse(localStorage.getItem('dropexpress_cart')) || [];
+        let cart = [];
 
         window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('cart-open');
 
         window.addToCart = (name, price) => {
             cart.push({ name, price });
-            saveAndRender();
+            updateCart();
             if(!document.getElementById('cart-sidebar').classList.contains('cart-open')) toggleCart();
         };
 
-        window.removeFromCart = (index) => {
-            cart.splice(index, 1);
-            saveAndRender();
-        };
-
-        function saveAndRender() {
-            localStorage.setItem('dropexpress_cart', JSON.stringify(cart));
-            document.getElementById('cart-count').innerText = cart.length;
-            renderCart();
-        }
-
-        function renderCart() {
+        function updateCart() {
             const container = document.getElementById('cart-items');
             const totalEl = document.getElementById('cart-total');
+            const countEl = document.getElementById('cart-count');
+            
             container.innerHTML = "";
             let total = 0;
 
@@ -100,103 +81,72 @@
                 total += item.price;
                 container.innerHTML += `
                     <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
-                        <span class="text-sm font-bold text-white">${item.name}</span>
-                        <div class="flex items-center gap-4 text-blue-500">
-                            <span class="font-bold">${item.price}€</span>
-                            <button onclick="removeFromCart(${index})" class="text-red-500 font-bold text-lg">✕</button>
-                        </div>
+                        <span class="font-bold">${item.name}</span>
+                        <span class="text-blue-500 font-bold">${item.price}€</span>
                     </div>`;
             });
-            totalEl.innerText = total.toFixed(2) + " €";
 
-            if (total > 0) startPaymentSystem(total.toFixed(2));
+            totalEl.innerText = total.toFixed(2) + " €";
+            countEl.innerText = cart.length;
+
+            if (total > 0) initPayPal(total.toFixed(2));
         }
 
-        // --- GESTION DU PAIEMENT ---
-        function startPaymentSystem(amount) {
-            const paypalContainer = document.getElementById('paypal-button-container');
-            const fallbackBtn = document.getElementById('fallback-button');
+        function initPayPal(totalPrice) {
+            const btnContainer = document.getElementById('paypal-button-container');
+            btnContainer.innerHTML = ""; // Reset pour éviter les doublons
 
-            // Si PayPal est bloqué ou non chargé
-            if (typeof paypal === 'undefined') {
-                paypalContainer.classList.add('hidden');
-                fallbackBtn.classList.remove('hidden');
-                return;
-            }
-
-            // Tentative d'affichage PayPal
-            paypalContainer.classList.remove('hidden');
-            fallbackBtn.classList.add('hidden');
-            
-            if (paypalContainer.innerHTML === "") {
+            if (typeof paypal !== 'undefined') {
                 paypal.Buttons({
-                    style: { layout: 'vertical', color: 'blue', shape: 'rect' },
+                    style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' },
                     createOrder: (data, actions) => {
-                        return actions.order.create({ purchase_units: [{ amount: { value: amount } }] });
+                        return actions.order.create({
+                            purchase_units: [{ amount: { value: totalPrice } }]
+                        });
                     },
                     onApprove: async (data, actions) => {
                         const details = await actions.order.capture();
-                        await saveOrderToFirebase();
-                        alert('Paiement validé ! Merci ' + details.payer.name.given_name);
-                        clearCart();
-                    },
-                    onError: (err) => {
-                        console.error("PayPal Error:", err);
-                        paypalContainer.classList.add('hidden');
-                        fallbackBtn.classList.remove('hidden');
+                        
+                        // Sauvegarde de la commande dans Firebase
+                        await addDoc(collection(db, "orders"), {
+                            client: document.getElementById('cust-name').value,
+                            email: document.getElementById('cust-email').value,
+                            adresse: document.getElementById('cust-address').value,
+                            articles: cart,
+                            total: totalPrice,
+                            status: "PAYÉ",
+                            date: new Date().toISOString()
+                        });
+
+                        alert('Merci ' + details.payer.name.given_name + ' ! Commande validée.');
+                        cart = []; updateCart(); toggleCart();
                     }
                 }).render('#paypal-button-container');
             }
         }
 
-        async function saveOrderToFirebase() {
-            await addDoc(collection(db, "orders"), {
-                nom: document.getElementById('c-name').value,
-                email: document.getElementById('c-email').value,
-                adresse: document.getElementById('c-address').value,
-                produits: cart,
-                total: document.getElementById('cart-total').innerText,
-                date: new Date().toLocaleString()
-            });
-        }
-
-        window.handleFallbackPayment = async () => {
-            const name = document.getElementById('c-name').value;
-            if(!name) { alert("Veuillez remplir vos infos de livraison"); return; }
-            await saveOrderToFirebase();
-            alert("Redirection vers la plateforme de paiement sécurisée...");
-            // Ici tu peux mettre un lien Stripe par exemple
-        };
-
-        function clearCart() {
-            cart = [];
-            localStorage.removeItem('dropexpress_cart');
-            location.reload();
-        }
-
-        // CHARGEMENT PRODUITS
         async function loadProducts() {
-            const querySnapshot = await getDocs(collection(db, "products"));
             const grid = document.getElementById('product-grid');
+            const querySnapshot = await getDocs(collection(db, "products"));
             grid.innerHTML = "";
+            
             querySnapshot.forEach((doc) => {
                 const p = doc.data();
                 grid.innerHTML += `
-                    <div class="product-card rounded-[2.5rem] p-5">
-                        <div class="aspect-square rounded-[2rem] overflow-hidden bg-[#111] mb-6 border border-white/5">
-                            <img src="${p.image}" class="w-full h-full object-cover">
-                        </div>
-                        <h3 class="font-bold text-xl px-2">${p.name}</h3>
-                        <div class="flex justify-between items-center mt-4 px-2">
-                            <span class="text-blue-500 font-black text-2xl">${p.price}€</span>
-                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-6 py-3 rounded-2xl font-bold active:scale-90 transition">+ Ajouter</button>
+                    <div class="product-card">
+                        <img src="${p.image}" class="w-full h-64 object-cover rounded-3xl mb-4">
+                        <h3 class="text-xl font-bold text-white">${p.name}</h3>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-2xl font-black text-blue-500">${p.price}€</span>
+                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-6 py-2 rounded-xl font-bold hover:bg-gray-200 transition">
+                                Ajouter
+                            </button>
                         </div>
                     </div>`;
             });
         }
 
         loadProducts();
-        saveAndRender();
     </script>
 </body>
 </html>
