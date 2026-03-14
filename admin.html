@@ -3,83 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | DropExpress</title>
+    <title>DropExpress | Dashboard Commandes</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: #fff; }
+        .order-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; transition: 0.3s; }
+    </style>
 </head>
-<body class="bg-gray-100 font-[Inter] p-6">
+<body class="p-4 md:p-8">
 
-    <div class="max-w-lg mx-auto bg-white rounded-3xl shadow-xl p-8">
-        <h1 class="text-2xl font-black mb-6 text-center">AJOUTER UN PRODUIT</h1>
-        
-        <div class="space-y-4">
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
             <div>
-                <label class="block text-sm font-bold mb-1">Nom du produit</label>
-                <input type="text" id="p-name" placeholder="ex: Sneakers Air" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-blue-500">
+                <h1 class="text-3xl font-black italic">DROP<span class="text-blue-500">EXPRESS</span> ADMIN</h1>
+                <p class="text-gray-500 text-sm">Gestion des commandes et livraisons</p>
             </div>
-
-            <div>
-                <label class="block text-sm font-bold mb-1">Prix (€)</label>
-                <input type="number" id="p-price" placeholder="ex: 89" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-bold mb-1">URL de l'image</label>
-                <input type="text" id="p-image" placeholder="Lien vers l'image" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-blue-500">
-                <p class="text-[10px] text-gray-400 mt-1 italic">Astuce : Utilise un lien Unsplash ou Pinterest pour tester.</p>
-            </div>
-
-            <button id="btn-add" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-transform mt-4">
-                Publier sur la boutique
+            <button onclick="location.reload()" class="bg-white/5 hover:bg-white/10 p-3 rounded-full transition">
+                🔄 Actualiser
             </button>
+        </header>
+
+        <div id="orders-list" class="grid gap-6">
+            <p class="text-center text-gray-500 animate-pulse">Chargement des commandes...</p>
         </div>
-
-        <div id="status" class="mt-4 text-center text-sm font-medium"></div>
-    </div>
-
-    <div class="text-center mt-8">
-        <a href="index.html" class="text-gray-400 underline text-sm">Retourner à la boutique</a>
     </div>
 
     <script type="module">
-        import { db, collection, addDoc } from "./firebase.js";
+        import { db, collection, getDocs, query, orderBy } from "./firebase.js";
 
-        const btn = document.getElementById('btn-add');
-        const status = document.getElementById('status');
-
-        btn.onclick = async () => {
-            const name = document.getElementById('p-name').value;
-            const price = document.getElementById('p-price').value;
-            const image = document.getElementById('p-image').value;
-
-            if(!name || !price) {
-                status.innerText = "❌ Remplis le nom et le prix !";
-                status.className = "mt-4 text-center text-red-500";
-                return;
-            }
-
-            status.innerText = "Envoi en cours...";
-            status.className = "mt-4 text-center text-blue-500";
-
+        async function loadOrders() {
+            const container = document.getElementById('orders-list');
             try {
-                await addDoc(collection(db, "products"), {
-                    name: name,
-                    price: parseFloat(price),
-                    image: image || "https://via.placeholder.com/300",
-                    createdAt: new Date()
-                });
-
-                status.innerText = "✅ Produit ajouté avec succès !";
-                status.className = "mt-4 text-center text-green-500";
+                // On récupère les commandes de la plus récente à la plus ancienne
+                const q = query(collection(db, "orders"), orderBy("date", "desc"));
+                const querySnapshot = await getDocs(q);
                 
-                // Vider les champs
-                document.getElementById('p-name').value = "";
-                document.getElementById('p-price').value = "";
-                document.getElementById('p-image').value = "";
-            } catch (e) {
-                status.innerText = "❌ Erreur : " + e.message;
+                if (querySnapshot.empty) {
+                    container.innerHTML = "<p class='text-center text-gray-500'>Aucune commande pour le moment.</p>";
+                    return;
+                }
+
+                container.innerHTML = "";
+                querySnapshot.forEach((doc) => {
+                    const order = doc.data();
+                    const date = new Date(order.date).toLocaleString('fr-FR');
+                    
+                    container.innerHTML += `
+                        <div class="order-card p-6 flex flex-col md:flex-row gap-6 items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded">PAYÉ</span>
+                                    <span class="text-gray-500 text-xs">${date}</span>
+                                </div>
+                                <h3 class="text-xl font-bold mb-1">${order.client || 'Client anonyme'}</h3>
+                                <p class="text-gray-400 text-sm mb-4">📍 ${order.adresse || 'Pas d'adresse'}</p>
+                                <div class="flex gap-2">
+                                    <span class="text-xs bg-white/5 px-3 py-1 rounded-lg border border-white/5">📧 ${order.email}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="w-full md:w-64 bg-black/40 p-4 rounded-2xl border border-white/5">
+                                <p class="text-[10px] font-bold text-gray-500 uppercase mb-3">Produits commandés</p>
+                                <ul class="text-sm space-y-1 mb-3">
+                                    ${order.articles.map(item => `<li>• ${item.name} (${item.price}€)</li>`).join('')}
+                                </ul>
+                                <div class="border-t border-white/5 pt-2 flex justify-between font-bold text-blue-500">
+                                    <span>Total</span>
+                                    <span>${order.total}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error("Erreur:", error);
+                container.innerHTML = "<p class='text-red-500 text-center'>Erreur lors du chargement. Vérifie tes règles Firestore.</p>";
             }
-        };
+        }
+
+        loadOrders();
     </script>
 </body>
 </html>
