@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
@@ -16,7 +16,8 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
+// CRUCIAL : Ajout de updateDoc dans l'export ci-dessous
 export { 
-    db, auth, storage, collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, onSnapshot,
+    db, auth, storage, collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot,
     GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, ref, uploadBytes, getDownloadURL 
 };
