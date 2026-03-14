@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Complet | DropExpress</title>
+    <title>Admin Dashboard | DropExpress</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
@@ -24,22 +24,19 @@
         </header>
 
         <div id="section-orders" class="space-y-6">
-            <h2 class="text-xl font-bold mb-4">Dernières ventes</h2>
-            <div id="orders-list" class="grid gap-6 text-gray-500">Chargement...</div>
+            <div id="orders-list" class="grid gap-6">Chargement des ventes...</div>
         </div>
 
         <div id="section-products" class="hidden space-y-8">
             <div class="card p-6 border-blue-500/30">
                 <h2 class="text-xl font-bold mb-4">Ajouter un produit</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input type="text" id="p-name" placeholder="Nom (ex: Jordan 4 Retro)" class="bg-black border border-white/10 p-3 rounded-xl text-sm">
-                    <input type="number" id="p-price" placeholder="Prix (€)" class="bg-black border border-white/10 p-3 rounded-xl text-sm">
-                    <input type="text" id="p-img" placeholder="Lien de l'image (URL)" class="bg-black border border-white/10 p-3 rounded-xl text-sm">
-                    <button onclick="addProduct()" class="md:col-span-3 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold">Ajouter au site</button>
+                    <input type="text" id="p-name" placeholder="Nom du modèle" class="bg-black border border-white/10 p-3 rounded-xl">
+                    <input type="number" id="p-price" placeholder="Prix (€)" class="bg-black border border-white/10 p-3 rounded-xl">
+                    <input type="text" id="p-img" placeholder="Lien image (URL)" class="bg-black border border-white/10 p-3 rounded-xl">
+                    <button onclick="addProduct()" class="md:col-span-3 bg-blue-600 py-3 rounded-xl font-bold">Publier le produit</button>
                 </div>
             </div>
-            
-            <h2 class="text-xl font-bold mb-4">Produits en ligne</h2>
             <div id="products-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
     </div>
@@ -47,11 +44,11 @@
     <script type="module">
         import { db, collection, getDocs, addDoc, query, orderBy, deleteDoc, doc } from "./firebase.js";
 
-        // --- SÉCURITÉ ---
+        // SÉCURITÉ
         const pass = prompt("Mot de passe :");
         if(pass !== "AMIR2026") { window.location.href="index.html"; }
 
-        // --- NAVIGATION ---
+        // NAVIGATION
         window.switchTab = (tab) => {
             document.getElementById('section-orders').classList.toggle('hidden', tab !== 'orders');
             document.getElementById('section-products').classList.toggle('hidden', tab !== 'products');
@@ -60,7 +57,7 @@
             if(tab === 'products') loadProducts(); else loadOrders();
         }
 
-        // --- GESTION COMMANDES ---
+        // CHARGER LES COMMANDES
         async function loadOrders() {
             const container = document.getElementById('orders-list');
             const q = query(collection(db, "orders"), orderBy("date", "desc"));
@@ -68,30 +65,41 @@
             container.innerHTML = "";
             snap.forEach(d => {
                 const o = d.data();
-                container.innerHTML += `<div class="card p-6">
-                    <div class="flex justify-between">
-                        <span class="text-blue-500 font-bold">${o.client}</span>
-                        <span class="text-xs text-gray-600">${new Date(o.date).toLocaleDateString()}</span>
+                container.innerHTML += `
+                <div class="card p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-blue-500 font-black text-xl">${o.client}</p>
+                            <p class="text-gray-400 text-sm">📍 ${o.adresse || "Pas d'adresse"}</p>
+                            <p class="text-blue-400 text-sm font-bold">📞 ${o.telephone || "Pas de numéro"}</p>
+                            <p class="text-gray-600 text-xs mt-1">📧 ${o.email}</p>
+                        </div>
+                        <span class="text-xs text-gray-700">${new Date(o.date).toLocaleDateString()}</span>
                     </div>
-                    <p class="text-sm text-gray-400 mt-2">${o.adresse}</p>
-                    <p class="text-right font-black text-xl mt-2">${o.total}</p>
+                    <div class="bg-white/5 p-4 rounded-xl flex justify-between items-center">
+                        <ul class="text-xs text-gray-400">
+                            ${o.articles ? o.articles.map(a => `<li>• ${a.name}</li>`).join('') : ''}
+                        </ul>
+                        <span class="text-2xl font-black">${o.total}</span>
+                    </div>
                 </div>`;
             });
         }
 
-        // --- GESTION PRODUITS ---
+        // GESTION PRODUITS (AJOUTER / SUPPRIMER)
         async function loadProducts() {
             const container = document.getElementById('products-list');
             const snap = await getDocs(collection(db, "products"));
             container.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                container.innerHTML += `<div class="card p-4 flex justify-between items-center">
+                container.innerHTML += `
+                <div class="card p-4 flex justify-between items-center">
                     <div class="flex items-center gap-4">
                         <img src="${p.image}" class="w-12 h-12 rounded-lg object-cover">
-                        <div><p class="font-bold">${p.name}</p><p class="text-blue-500">${p.price}€</p></div>
+                        <div><p class="font-bold text-sm">${p.name}</p><p class="text-blue-500 text-sm">${p.price}€</p></div>
                     </div>
-                    <button onclick="deleteProduct('${d.id}')" class="text-red-500 hover:bg-red-500/10 p-2 rounded-lg">Supprimer</button>
+                    <button onclick="deleteProduct('${d.id}')" class="text-red-500 text-xs font-bold bg-red-500/10 px-3 py-2 rounded-lg">Supprimer</button>
                 </div>`;
             });
         }
@@ -100,14 +108,13 @@
             const name = document.getElementById('p-name').value;
             const price = document.getElementById('p-price').value;
             const image = document.getElementById('p-img').value;
-            if(!name || !price) return alert("Remplis tout !");
+            if(!name || !price) return alert("Champs vides !");
             await addDoc(collection(db, "products"), { name, price: parseFloat(price), image });
-            alert("Produit ajouté !");
             loadProducts();
         };
 
         window.deleteProduct = async (id) => {
-            if(confirm("Supprimer ce produit ?")) {
+            if(confirm("Supprimer l'article ?")) {
                 await deleteDoc(doc(db, "products", id));
                 loadProducts();
             }
