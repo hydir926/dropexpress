@@ -23,17 +23,21 @@
         </header>
 
         <div id="section-products" class="space-y-6">
-            <div class="card p-6 border-blue-500/20">
-                <h2 class="text-lg font-bold mb-4 italic">Ajouter une pépite</h2>
+            <div class="card p-6 border-blue-500/20 shadow-xl">
+                <h2 class="text-lg font-bold mb-4 italic text-blue-500">Nouveau Produit</h2>
                 <div class="space-y-4">
                     <input type="text" id="p-name" placeholder="Nom du modèle">
                     <input type="number" id="p-price" placeholder="Prix (€)">
-                    <textarea id="p-desc" placeholder="Description détaillée..." class="h-24"></textarea>
-                    <div>
-                        <p class="text-[10px] font-bold text-gray-500 uppercase mb-2 ml-1">Photo du produit</p>
-                        <input type="file" id="p-file" class="text-xs border-none">
+                    <textarea id="p-desc" placeholder="Description (matières, taille, état...)" class="h-24"></textarea>
+                    
+                    <div class="p-4 bg-white/5 rounded-2xl border border-dashed border-white/10 text-center">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase mb-2">Choisir une photo dans ta galerie</p>
+                        <input type="file" id="p-file" accept="image/*" class="text-xs border-none cursor-pointer">
                     </div>
-                    <button onclick="addProduct()" id="btn-add" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase text-xs tracking-widest">Mettre en ligne</button>
+
+                    <button onclick="handleUpload()" id="btn-add" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-blue-600/20 active:scale-95 transition">
+                        Publier l'article
+                    </button>
                 </div>
             </div>
             <div id="products-list" class="grid gap-4"></div>
@@ -45,9 +49,10 @@
     </div>
 
     <script type="module">
-        import { db, storage, collection, addDoc, deleteDoc, doc, onSnapshot, ref, uploadBytes, getDownloadURL, query, orderBy } from "./firebase.js";
+        import { db, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "./firebase.js";
         
-        const pass = prompt("Accès Admin :");
+        // Sécurité
+        const pass = prompt("Code Admin :");
         if(pass !== "AMIR2026") window.location.href="index.html";
 
         window.switchTab = (tab) => {
@@ -57,47 +62,84 @@
             document.getElementById('btn-products').classList.toggle('active', tab === 'products');
         };
 
-        window.addProduct = async () => {
+        // Fonction pour transformer l'image en texte et l'envoyer
+        window.handleUpload = async () => {
             const name = document.getElementById('p-name').value;
             const price = document.getElementById('p-price').value;
             const desc = document.getElementById('p-desc').value;
             const file = document.getElementById('p-file').files[0];
             const btn = document.getElementById('btn-add');
 
-            if(!name || !price || !desc || !file) return alert("Complète tous les champs !");
-            btn.innerText = "CHARGEMENT..."; btn.disabled = true;
+            if(!name || !price || !desc || !file) {
+                alert("⚠️ Remplis tout et choisis une photo !");
+                return;
+            }
 
-            try {
-                const sRef = ref(storage, `products/${Date.now()}_${file.name}`);
-                await uploadBytes(sRef, file);
-                const url = await getDownloadURL(sRef);
+            btn.innerText = "PUBLICATION EN COURS...";
+            btn.disabled = true;
 
-                await addDoc(collection(db, "products"), {
-                    name, price: parseFloat(price), description: desc, image: url, date: new Date().toISOString()
-                });
-                alert("Produit ajouté !"); location.reload();
-            } catch(e) { alert(e.message); btn.disabled = false; btn.innerText = "METTRE EN LIGNE"; }
+            const reader = new FileReader();
+            reader.readAsDataURL(file); // Convertit l'image pour éviter l'erreur CORS
+            reader.onload = async () => {
+                const base64Image = reader.result;
+
+                try {
+                    await addDoc(collection(db, "products"), {
+                        name: name,
+                        price: parseFloat(price),
+                        description: desc,
+                        image: base64Image, // L'image est sauvegardée directement
+                        date: new Date().toISOString()
+                    });
+                    alert("✅ Article ajouté avec succès !");
+                    location.reload();
+                } catch(e) {
+                    alert("Erreur base de données : " + e.message);
+                    btn.disabled = false;
+                    btn.innerText = "PUBLIER L'ARTICLE";
+                }
+            };
         };
 
+        // Liste des produits (Affichage temps réel)
         onSnapshot(collection(db, "products"), snap => {
-            const list = document.getElementById('products-list'); list.innerHTML = "";
+            const list = document.getElementById('products-list');
+            list.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                list.innerHTML += `<div class="card p-4 flex justify-between items-center border-white/5">
-                    <div class="flex items-center gap-4"><img src="${p.image}" class="w-12 h-12 rounded-xl object-cover"><div><p class="font-bold text-xs uppercase">${p.name}</p><p class="text-blue-500 text-sm font-black">${p.price}€</p></div></div>
-                    <button onclick="deleteP('${d.id}')" class="text-red-500 text-[10px] font-bold bg-red-500/10 px-4 py-2 rounded-lg">Supprimer</button>
+                list.innerHTML += `
+                <div class="card p-4 flex justify-between items-center border-white/5 shadow-lg">
+                    <div class="flex items-center gap-4">
+                        <img src="${p.image}" class="w-14 h-14 rounded-xl object-cover">
+                        <div>
+                            <p class="font-bold text-xs uppercase italic">${p.name}</p>
+                            <p class="text-blue-500 text-sm font-black">${p.price}€</p>
+                        </div>
+                    </div>
+                    <button onclick="deleteP('${d.id}')" class="text-red-500 text-[10px] font-bold bg-red-500/10 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white transition">Supprimer</button>
                 </div>`;
             });
         });
 
-        window.deleteP = async (id) => { if(confirm("Supprimer ?")) await deleteDoc(doc(db, "products", id)); };
+        window.deleteP = async (id) => { if(confirm("Supprimer cet article ?")) await deleteDoc(doc(db, "products", id)); };
 
+        // Liste des commandes (Affichage temps réel)
         onSnapshot(query(collection(db, "orders"), orderBy("date", "desc")), snap => {
-            const list = document.getElementById('orders-list'); list.innerHTML = "";
+            const list = document.getElementById('orders-list');
+            list.innerHTML = "";
             snap.forEach(d => {
                 const o = d.data();
-                list.innerHTML += `<div class="card p-5 border-white/5"><div class="flex justify-between mb-2"><p class="font-black text-blue-500 text-lg uppercase">${o.client}</p><p class="font-black">${o.total}</p></div>
-                <p class="text-gray-400 text-sm italic">📍 ${o.adresse}</p><p class="text-blue-400 font-bold text-xs">📞 ${o.telephone || 'N/A'}</p></div>`;
+                list.innerHTML += `
+                <div class="card p-5 border-white/5">
+                    <div class="flex justify-between mb-3 border-b border-white/5 pb-2">
+                        <p class="font-black text-blue-500 text-lg uppercase">${o.client}</p>
+                        <p class="font-black text-xl text-white">${o.total}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-gray-400 text-sm italic">📍 ${o.adresse}</p>
+                        <p class="text-blue-400 font-bold text-xs uppercase tracking-widest">📞 ${o.telephone || 'Non renseigné'}</p>
+                    </div>
+                </div>`;
             });
         });
     </script>
