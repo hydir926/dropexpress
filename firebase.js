@@ -1,14 +1,17 @@
-// On utilise les versions "esm" pour que ça marche directement sur le web
+// Importations des modules Firebase via CDN (version web sans installation)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
     getFirestore, 
     collection, 
     getDocs, 
     addDoc, 
+    deleteDoc, 
+    doc, 
     query, 
     orderBy 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// Ta configuration Firebase (ne pas modifier ces clés)
 const firebaseConfig = {
   apiKey: "AIzaSyAs_xRDDAUjh_AemBZFBDCKQ9QXTNWuJ00",
   authDomain: "dropexpress-ba171.firebaseapp.com",
@@ -19,9 +22,18 @@ const firebaseConfig = {
   measurementId: "G-YSRK4VCL5K"
 };
 
-// Initialisation
+// Initialisation de Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// EXPORT de toutes les fonctions nécessaires pour index.html et admin.html
-export { db, collection, getDocs, addDoc, query, orderBy };
+// Exportation de TOUTES les fonctions pour index.html et admin.html
+export { 
+    db, 
+    collection, 
+    getDocs, 
+    addDoc, 
+    deleteDoc, 
+    doc, 
+    query, 
+    orderBy 
+};
