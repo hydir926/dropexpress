@@ -14,7 +14,8 @@
         .cart-open { transform: translateX(0) !important; }
         .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: all 0.3s ease; }
         input::placeholder { color: #4b5563; }
-        #paypal-button-container { width: 100%; min-height: 150px; margin-top: 10px; }
+        #paypal-button-container { width: 100%; min-height: 100px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -31,7 +32,7 @@
 
     <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-[450px] bg-black border-l border-white/10 shadow-2xl z-50 transition-transform transform translate-x-full flex flex-col">
         <div class="p-6 border-b border-white/10 flex justify-between items-center">
-            <h2 class="font-bold text-xl text-white">Détails de la commande</h2>
+            <h2 class="font-bold text-xl">Détails de la commande</h2>
             <button onclick="toggleCart()" class="text-3xl text-gray-400 hover:text-white">&times;</button>
         </div>
 
@@ -45,13 +46,18 @@
         </div>
 
         <div class="p-6 border-t border-white/10 bg-[#0a0a0a] space-y-4">
-            <div class="flex justify-between font-bold text-xl px-2 mb-2 text-white">
+            <div class="flex justify-between font-bold text-xl px-2 mb-2">
                 <span>Total à régler</span>
                 <span id="cart-total" class="text-blue-500">0.00 €</span>
             </div>
             
             <div id="paypal-button-container"></div>
-            <p class="text-[10px] text-center text-gray-500 italic">Paiement 100% sécurisé</p>
+
+            <button id="fallback-button" onclick="handleFallbackPayment()" class="hidden w-full bg-white text-black py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition">
+                Payer par Carte Bancaire
+            </button>
+
+            <p class="text-[10px] text-center text-gray-500 italic">Paiement 100% sécurisé via SSL</p>
         </div>
     </div>
 
@@ -64,27 +70,24 @@
         import { db, collection, getDocs, addDoc } from "./firebase.js";
 
         let cart = JSON.parse(localStorage.getItem('dropexpress_cart')) || [];
-        const cartSidebar = document.getElementById('cart-sidebar');
 
-        window.toggleCart = () => cartSidebar.classList.toggle('cart-open');
+        window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('cart-open');
 
         window.addToCart = (name, price) => {
             cart.push({ name, price });
-            saveCart();
-            renderCart();
-            if(!cartSidebar.classList.contains('cart-open')) toggleCart();
+            saveAndRender();
+            if(!document.getElementById('cart-sidebar').classList.contains('cart-open')) toggleCart();
         };
 
         window.removeFromCart = (index) => {
             cart.splice(index, 1);
-            saveCart();
-            renderCart();
-            if(cart.length === 0) document.getElementById('paypal-button-container').innerHTML = "";
+            saveAndRender();
         };
 
-        function saveCart() {
+        function saveAndRender() {
             localStorage.setItem('dropexpress_cart', JSON.stringify(cart));
             document.getElementById('cart-count').innerText = cart.length;
+            renderCart();
         }
 
         function renderCart() {
@@ -96,53 +99,82 @@
             cart.forEach((item, index) => {
                 total += item.price;
                 container.innerHTML += `
-                    <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5 mb-2">
+                    <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
                         <span class="text-sm font-bold text-white">${item.name}</span>
                         <div class="flex items-center gap-4 text-blue-500">
                             <span class="font-bold">${item.price}€</span>
-                            <button onclick="removeFromCart(${index})" class="text-red-500">✕</button>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 font-bold text-lg">✕</button>
                         </div>
                     </div>`;
             });
             totalEl.innerText = total.toFixed(2) + " €";
 
-            // Déclenche PayPal si le panier n'est pas vide
-            if (total > 0) {
-                renderPayPalButton();
+            if (total > 0) startPaymentSystem(total.toFixed(2));
+        }
+
+        // --- GESTION DU PAIEMENT ---
+        function startPaymentSystem(amount) {
+            const paypalContainer = document.getElementById('paypal-button-container');
+            const fallbackBtn = document.getElementById('fallback-button');
+
+            // Si PayPal est bloqué ou non chargé
+            if (typeof paypal === 'undefined') {
+                paypalContainer.classList.add('hidden');
+                fallbackBtn.classList.remove('hidden');
+                return;
+            }
+
+            // Tentative d'affichage PayPal
+            paypalContainer.classList.remove('hidden');
+            fallbackBtn.classList.add('hidden');
+            
+            if (paypalContainer.innerHTML === "") {
+                paypal.Buttons({
+                    style: { layout: 'vertical', color: 'blue', shape: 'rect' },
+                    createOrder: (data, actions) => {
+                        return actions.order.create({ purchase_units: [{ amount: { value: amount } }] });
+                    },
+                    onApprove: async (data, actions) => {
+                        const details = await actions.order.capture();
+                        await saveOrderToFirebase();
+                        alert('Paiement validé ! Merci ' + details.payer.name.given_name);
+                        clearCart();
+                    },
+                    onError: (err) => {
+                        console.error("PayPal Error:", err);
+                        paypalContainer.classList.add('hidden');
+                        fallbackBtn.classList.remove('hidden');
+                    }
+                }).render('#paypal-button-container');
             }
         }
 
-        let paypalInjected = false;
-        function renderPayPalButton() {
-            const container = document.getElementById('paypal-button-container');
-            if (paypalInjected || typeof paypal === 'undefined') return;
-            
-            paypalInjected = true;
-            paypal.Buttons({
-                style: { layout: 'vertical', color: 'blue', shape: 'rect' },
-                createOrder: (data, actions) => {
-                    const totalStr = document.getElementById('cart-total').innerText.split(' ')[0];
-                    return actions.order.create({
-                        purchase_units: [{ amount: { value: totalStr } }]
-                    });
-                },
-                onApprove: async (data, actions) => {
-                    const details = await actions.order.capture();
-                    // Enregistre l'adresse dans Firestore
-                    await addDoc(collection(db, "orders"), {
-                        nom: document.getElementById('c-name').value,
-                        email: document.getElementById('c-email').value,
-                        adresse: document.getElementById('c-address').value,
-                        articles: cart,
-                        total: document.getElementById('cart-total').innerText,
-                        date: new Date().toISOString()
-                    });
-                    alert('Merci ' + details.payer.name.given_name + ' ! Commande validée.');
-                    cart = []; saveCart(); location.reload();
-                }
-            }).render('#paypal-button-container');
+        async function saveOrderToFirebase() {
+            await addDoc(collection(db, "orders"), {
+                nom: document.getElementById('c-name').value,
+                email: document.getElementById('c-email').value,
+                adresse: document.getElementById('c-address').value,
+                produits: cart,
+                total: document.getElementById('cart-total').innerText,
+                date: new Date().toLocaleString()
+            });
         }
 
+        window.handleFallbackPayment = async () => {
+            const name = document.getElementById('c-name').value;
+            if(!name) { alert("Veuillez remplir vos infos de livraison"); return; }
+            await saveOrderToFirebase();
+            alert("Redirection vers la plateforme de paiement sécurisée...");
+            // Ici tu peux mettre un lien Stripe par exemple
+        };
+
+        function clearCart() {
+            cart = [];
+            localStorage.removeItem('dropexpress_cart');
+            location.reload();
+        }
+
+        // CHARGEMENT PRODUITS
         async function loadProducts() {
             const querySnapshot = await getDocs(collection(db, "products"));
             const grid = document.getElementById('product-grid');
@@ -154,19 +186,17 @@
                         <div class="aspect-square rounded-[2rem] overflow-hidden bg-[#111] mb-6 border border-white/5">
                             <img src="${p.image}" class="w-full h-full object-cover">
                         </div>
-                        <h3 class="font-bold text-xl px-2 text-white">${p.name}</h3>
+                        <h3 class="font-bold text-xl px-2">${p.name}</h3>
                         <div class="flex justify-between items-center mt-4 px-2">
                             <span class="text-blue-500 font-black text-2xl">${p.price}€</span>
-                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-6 py-3 rounded-2xl font-bold active:scale-95 transition">
-                                + Ajouter
-                            </button>
+                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-6 py-3 rounded-2xl font-bold active:scale-90 transition">+ Ajouter</button>
                         </div>
                     </div>`;
             });
         }
 
         loadProducts();
-        renderCart();
+        saveAndRender();
     </script>
 </body>
 </html>
