@@ -3,38 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DropExpress | Admin</title>
+    <title>Admin | DropExpress</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: #fff; }
-        .order-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; }
+        .order-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; margin-bottom: 1.5rem; padding: 1.5rem; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4">
 
-    <div class="max-w-5xl mx-auto">
-        <header class="flex justify-between items-center mb-12">
-            <div>
-                <h1 class="text-3xl font-black italic">DROP<span class="text-blue-500">EXPRESS</span> ADMIN</h1>
-                <p class="text-gray-500 text-sm">Gestion des commandes</p>
-            </div>
-            <button onclick="location.reload()" class="bg-blue-600 px-5 py-2 rounded-full font-bold text-sm">Actualiser</button>
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-2xl font-black italic">ADMIN <span class="text-blue-500">DASHBOARD</span></h1>
+            <button onclick="location.reload()" class="bg-blue-600 px-4 py-2 rounded-lg font-bold text-sm">🔄 Actualiser</button>
         </header>
 
-        <div id="orders-list" class="space-y-6">
-            <p class="text-center text-gray-500">Chargement...</p>
+        <div id="orders-list">
+            <p class="text-center text-gray-500">Chargement des commandes...</p>
         </div>
     </div>
 
     <script type="module">
-        // Importation corrigée
         import { db, collection, getDocs, query, orderBy } from "./firebase.js";
 
         async function loadOrders() {
             const container = document.getElementById('orders-list');
             try {
-                // Cette ligne nécessite que query et orderBy soient dans firebase.js
                 const q = query(collection(db, "orders"), orderBy("date", "desc"));
                 const querySnapshot = await getDocs(q);
                 
@@ -46,28 +41,34 @@
                 container.innerHTML = "";
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const items = data.articles || [];
                     
+                    // Création de la liste des articles proprement
+                    let listItems = "";
+                    if(data.articles) {
+                        data.articles.forEach(item => {
+                            listItems += `<li>• ${item.name} - ${item.price}€</li>`;
+                        });
+                    }
+
                     container.innerHTML += `
-                        <div class="order-card p-6 border border-white/5 mb-4">
+                        <div class="order-card">
                             <div class="flex justify-between items-start mb-4">
                                 <div>
-                                    <h2 class="text-xl font-bold">${data.client || data.nom || 'Client'}</h2>
-                                    <p class="text-blue-400 text-sm italic">📍 ${data.adresse || 'Pas d'adresse'}</p>
+                                    <h2 class="text-xl font-bold text-blue-500">${data.client || "Client"}</h2>
+                                    <p class="text-sm text-gray-400">📍 ${data.adresse || "Pas d'adresse"}</p>
+                                    <p class="text-xs text-gray-500">📧 ${data.email || ""}</p>
                                 </div>
-                                <span class="text-xs text-gray-500">${data.date ? new Date(data.date).toLocaleString() : ''}</span>
+                                <span class="text-xs font-bold text-gray-600">${data.date ? new Date(data.date).toLocaleDateString() : ""}</span>
                             </div>
-                            <div class="bg-white/5 p-4 rounded-xl">
-                                <ul class="text-sm mb-2">
-                                    ${items.map(i => `<li>- ${i.name} (${i.price}€)</li>`).join('')}
-                                </ul>
-                                <p class="text-right font-black text-blue-500">Total: ${data.total}</p>
+                            <div class="border-t border-white/5 pt-4">
+                                <ul class="text-sm text-gray-300 mb-4">${listItems}</ul>
+                                <p class="text-right font-black text-xl text-white">Total : ${data.total}</p>
                             </div>
                         </div>`;
                 });
             } catch (error) {
                 console.error(error);
-                container.innerHTML = "<p class='text-red-500 text-center'>Erreur : " + error.message + "</p>";
+                container.innerHTML = "<p class='text-red-500'>Erreur : " + error.message + "</p>";
             }
         }
         loadOrders();
