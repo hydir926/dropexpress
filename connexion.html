@@ -5,29 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion | DropExpress</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { background-color: #000; color: #fff; } input { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 15px; border-radius: 12px; margin-bottom: 15px; }</style>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000; color: #fff; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .auth-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 2.5rem; padding: 2.5rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 15px; border-radius: 14px; margin-bottom: 12px; outline: none; transition: 0.3s; }
+        input:focus { border-color: #2563eb !important; }
+        .btn-blue { background: #2563eb; width: 100%; padding: 16px; border-radius: 14px; font-weight: 800; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; transition: 0.3s; margin-top: 10px; }
+        .btn-blue:active { transform: scale(0.98); }
+        .btn-google { background: #fff; color: #000; width: 100%; padding: 12px; border-radius: 14px; font-weight: 700; font-size: 11px; text-transform: uppercase; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-6">
-    <div class="max-w-md w-full bg-[#0a0a0a] p-8 rounded-[2rem] border border-white/5 shadow-2xl">
-        <h1 class="text-3xl font-black italic mb-2 text-center">DROP<span class="text-blue-500">EXPRESS</span></h1>
-        <p class="text-gray-500 text-center mb-8 text-xs font-bold uppercase">Connexion</p>
-        <form id="login-form">
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="pass" placeholder="Mot de passe" required>
-            <button type="submit" class="w-full bg-blue-600 py-4 rounded-xl font-bold transition">Se connecter</button>
-        </form>
-        <div class="flex items-center my-6"><div class="flex-grow border-t border-white/10"></div><span class="mx-4 text-xs text-gray-600">OU</span><div class="flex-grow border-t border-white/10"></div></div>
-        <button id="google-btn" class="w-full bg-white text-black py-4 rounded-xl font-bold flex items-center justify-center gap-2"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5"> Google</button>
-        <p class="text-center mt-6 text-sm text-gray-500">Pas de compte ? <a href="inscription.html" class="text-blue-500 font-bold">S'inscrire</a></p>
+<body>
+
+    <div class="auth-card">
+        <div class="text-center mb-10">
+            <h1 class="text-2xl font-black italic uppercase tracking-tighter mb-2">DROP<span class="text-blue-500">EXPRESS</span></h1>
+            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Espace Client</p>
+        </div>
+
+        <div>
+            <input type="email" id="email" placeholder="Adresse Email">
+            <input type="password" id="password" placeholder="Mot de passe">
+            
+            <button onclick="loginEmail()" id="btn-login" class="btn-blue">Se connecter</button>
+
+            <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
+                <div class="relative flex justify-center text-[10px] uppercase font-bold"><span class="bg-[#0a0a0a] px-4 text-gray-600">Ou continuer avec</span></div>
+            </div>
+
+            <button onclick="loginGoogle()" class="btn-google">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                Google
+            </button>
+
+            <p class="text-center mt-8 text-[11px] font-medium text-gray-500 uppercase tracking-tight">
+                Pas encore membre ? 
+                <a href="inscription.html" class="text-blue-500 font-black ml-1">S'inscrire</a>
+            </p>
+            
+            <a href="index.html" class="block text-center mt-4 text-[9px] font-bold text-gray-700 uppercase tracking-widest hover:text-white transition">← Retour boutique</a>
+        </div>
     </div>
+
     <script type="module">
-        import { auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "./firebase.js";
-        document.getElementById('login-form').onsubmit = async (e) => {
-            e.preventDefault();
-            try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('pass').value); window.location.href="index.html"; } catch(e) { alert(e.message); }
+        // Importation directe depuis le CDN pour corriger l'erreur de module export
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAs_xRDDAUjh_AemBZFBDCKQ9QXTNWuJ00",
+            authDomain: "dropexpress-ba171.firebaseapp.com",
+            projectId: "dropexpress-ba171",
+            storageBucket: "dropexpress-ba171.firebasestorage.app",
+            appId: "1:1070163070918:web:2c3e26ad6ea0688cb4acc7"
         };
-        document.getElementById('google-btn').onclick = async () => {
-            try { await signInWithPopup(auth, new GoogleAuthProvider()); window.location.href="index.html"; } catch(e) { alert(e.message); }
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Connexion Classique
+        window.loginEmail = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login');
+
+            if(!email || !pass) return alert("Remplissez tous les champs.");
+
+            btn.innerText = "CONNEXION...";
+            btn.disabled = true;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                window.location.href = "index.html";
+            } catch (e) {
+                console.error(e);
+                alert("Erreur : Identifiants incorrects.");
+                btn.innerText = "SE CONNECTER";
+                btn.disabled = false;
+            }
+        };
+
+        // Connexion Google (Correction de l'Uncaught SyntaxError)
+        window.loginGoogle = async () => {
+            try {
+                await signInWithPopup(auth, provider);
+                window.location.href = "index.html";
+            } catch (e) {
+                console.error(e);
+                alert("Erreur avec Google.");
+            }
         };
     </script>
 </body>
