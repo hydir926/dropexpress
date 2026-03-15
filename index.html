@@ -29,7 +29,7 @@
             border-radius: 1.5rem; padding: 14px; display: flex; flex-direction: column; 
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .product-card:hover { border-color: var(--accent); transform: translateY(-8px); box-shadow: 0 20px 40px -20px rgba(37, 99, 235, 0.3); }
+        .product-card:hover { border-color: var(--accent); transform: translateY(-8px); }
         
         .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 1rem; background: #111; margin-bottom: 12px; }
 
@@ -41,12 +41,12 @@
         }
         .cart-open { transform: translateX(0); }
         
-        .btn-qty { background: #1a1a1a; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.2s; }
-        .btn-qty:hover { background: var(--accent); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .btn-qty { background: #1a1a1a; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .category-btn { transition: 0.3s; white-space: nowrap; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid var(--border); border-radius: 50px; padding: 10px 20px; color: #666; }
         .category-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        details summary::-webkit-details-marker { display: none; }
     </style>
 </head>
 <body>
@@ -61,15 +61,17 @@
         </div>
     </nav>
 
-    <header class="py-16 text-center px-4 max-w-4xl mx-auto">
-        <h1 class="text-5xl md:text-7xl font-black mb-6 italic tracking-tight">VOTRE <span class="text-blue-600">SHOP</span> ICI.</h1>
-        <p class="text-gray-400 text-sm mb-10 font-medium">Sélection exclusive de gadgets et accessoires rares.</p>
+    <header class="relative w-full bg-black py-20 px-6 text-center border-b border-white/5">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-4">Le futur du <br> shopping <span class="text-blue-500">commence ici.</span></h1>
+            <p class="text-gray-400 text-lg md:text-xl font-light mb-8">Articles exclusifs. Livraison mondiale. Paiement 100% sécurisé.</p>
+        </div>
         
         <div class="relative max-w-lg mx-auto mb-10">
-            <input type="text" id="search-input" oninput="filterProducts()" placeholder="Rechercher un produit..." class="w-full bg-[#111] border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition shadow-2xl text-sm">
+            <input type="text" id="search-input" oninput="filterProducts()" placeholder="Rechercher un produit..." class="w-full bg-[#111] border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition shadow-2xl text-sm text-white">
         </div>
 
-        <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar justify-start md:justify-center px-4">
+        <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar justify-start md:justify-center">
             <button class="category-btn active" onclick="setCategory('all', this)">Tous</button>
             <button class="category-btn" onclick="setCategory('High-Tech', this)">High-Tech</button>
             <button class="category-btn" onclick="setCategory('Déco', this)">Déco</button>
@@ -77,51 +79,62 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 pb-20">
+    <main class="max-w-7xl mx-auto px-4 py-12">
         <div id="product-grid" class="product-grid"></div>
     </main>
 
+    <section class="py-20 px-6 max-w-3xl mx-auto border-t border-white/5">
+        <h2 class="text-center text-[10px] font-black uppercase tracking-[0.5em] text-blue-500 mb-12">QUESTIONS FRÉQUENTES</h2>
+        <div class="space-y-4">
+            <details class="group bg-white/5 border border-white/5 rounded-2xl p-6 cursor-pointer">
+                <summary class="flex justify-between items-center text-xs font-black uppercase list-none">Délais de livraison ? <span class="text-blue-500">▼</span></summary>
+                <p class="text-gray-500 text-xs mt-4 leading-relaxed">Expédition sous 24h. Livraison en 48/72h pour la France.</p>
+            </details>
+            <details class="group bg-white/5 border border-white/5 rounded-2xl p-6 cursor-pointer">
+                <summary class="flex justify-between items-center text-xs font-black uppercase list-none">Paiement sécurisé ? <span class="text-blue-500">▼</span></summary>
+                <p class="text-gray-500 text-xs mt-4 leading-relaxed">Nous utilisons le cryptage SSL via PayPal et Stripe pour une sécurité totale.</p>
+            </details>
+        </div>
+    </section>
+
     <section class="bg-[#050505] py-20 border-y border-white/5">
-        <h2 class="text-center text-[10px] font-black uppercase tracking-[0.5em] text-blue-500 mb-12">L'AVIS DE NOS CLIENTS</h2>
+        <h2 class="text-center text-[10px] font-black uppercase tracking-[0.5em] text-blue-500 mb-12">AVIS CLIENTS</h2>
         <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
             <div class="bg-[#0a0a0a] p-8 rounded-3xl border border-white/5">
-                <div class="text-yellow-500 mb-4 text-xs">⭐⭐⭐⭐⭐</div>
-                <p class="text-gray-400 text-sm italic">"Livraison ultra rapide. Le projecteur High-Tech est incroyable !"</p>
-                <div class="mt-6 font-bold text-xs uppercase text-white">— Marc L.</div>
+                <div class="text-yellow-500 mb-4 text-[10px]">⭐⭐⭐⭐⭐</div>
+                <p class="text-gray-400 text-sm italic">"Colis reçu très vite. Le design est incroyable."</p>
+                <div class="mt-6 font-bold text-[10px] uppercase">— Marc L.</div>
             </div>
             <div class="bg-[#0a0a0a] p-8 rounded-3xl border border-white/5">
-                <div class="text-yellow-500 mb-4 text-xs">⭐⭐⭐⭐⭐</div>
-                <p class="text-gray-400 text-sm italic">"Enfin une boutique avec des vrais produits originaux. SAV réactif."</p>
-                <div class="mt-6 font-bold text-xs uppercase text-white">— Sarah K.</div>
+                <div class="text-yellow-500 mb-4 text-[10px]">⭐⭐⭐⭐⭐</div>
+                <p class="text-gray-400 text-sm italic">"Service client réactif et produits de qualité."</p>
+                <div class="mt-6 font-bold text-[10px] uppercase">— Sarah K.</div>
             </div>
             <div class="bg-[#0a0a0a] p-8 rounded-3xl border border-white/5">
-                <div class="text-yellow-500 mb-4 text-xs">⭐⭐⭐⭐⭐</div>
-                <p class="text-gray-400 text-sm italic">"Paiement sécurisé PayPal, reçu en 48h. Parfait."</p>
-                <div class="mt-6 font-bold text-xs uppercase text-white">— Thomas D.</div>
+                <div class="text-yellow-500 mb-4 text-[10px]">⭐⭐⭐⭐⭐</div>
+                <p class="text-gray-400 text-sm italic">"Paiement PayPal très pratique, rien à redire."</p>
+                <div class="mt-6 font-bold text-[10px] uppercase">— Thomas D.</div>
             </div>
         </div>
     </section>
 
     <footer class="py-20 px-6 text-center bg-black">
-        <div class="text-2xl font-black italic mb-10 uppercase">Drop<span class="text-blue-500">Express</span></div>
+        <div class="text-2xl font-black italic mb-10">Drop<span class="text-blue-500">Express</span></div>
         <div class="flex flex-wrap justify-center gap-8 text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-10">
-            <a href="#" class="hover:text-white transition">Instagram</a>
-            <a href="#" class="hover:text-white transition">TikTok</a>
-            <a href="#" class="hover:text-white transition">Mentions Légales</a>
-            <a href="#" class="hover:text-white transition">CGV</a>
+            <a href="#">Instagram</a> <a href="#">TikTok</a> <a href="#">Mentions</a> <a href="#">CGV</a>
         </div>
         <p class="text-[9px] text-gray-800 font-bold uppercase tracking-[4px]">© 2026 DropExpress Corporation</p>
     </footer>
 
-    <div id="cart-sidebar" class="cart-sidebar shadow-2xl">
+    <div id="cart-sidebar" class="cart-sidebar">
         <div class="p-6 border-b border-white/5 flex justify-between items-center">
-            <h2 class="text-xl font-black italic tracking-tight uppercase">Panier</h2>
-            <button onclick="toggleCart()" class="text-gray-500 hover:text-white text-3xl">&times;</button>
+            <h2 class="text-xl font-black italic uppercase">Panier</h2>
+            <button onclick="toggleCart()" class="text-3xl">&times;</button>
         </div>
         <div id="cart-items" class="flex-1 overflow-y-auto p-4 no-scrollbar"></div>
         <div class="p-6 bg-[#0a0a0a] border-t border-white/5">
             <div class="flex justify-between items-center mb-6">
-                <span class="text-gray-500 font-bold text-xs uppercase">Total</span>
+                <span class="text-gray-500 font-bold text-xs">Total</span>
                 <span id="cart-total" class="text-2xl font-black text-blue-500">0.00€</span>
             </div>
             <div id="paypal-button-container"></div>
@@ -156,42 +169,29 @@
         window.toggleDesc = (id) => {
             const p = document.getElementById(`desc-${id}`);
             const btn = document.getElementById(`btn-${id}`);
-            if (p.classList.contains('line-clamp-2')) {
-                p.classList.remove('line-clamp-2');
-                btn.innerText = "Réduire -";
-            } else {
-                p.classList.add('line-clamp-2');
-                btn.innerText = "Lire plus +";
-            }
+            p.classList.toggle('line-clamp-2');
+            btn.innerText = p.classList.contains('line-clamp-2') ? "Lire plus +" : "Réduire -";
         };
 
         function renderProducts() {
             const grid = document.getElementById('product-grid');
             const search = document.getElementById('search-input').value.toLowerCase();
             grid.innerHTML = "";
-
-            const filtered = allProducts.filter(p => 
-                (currentCategory === 'all' || p.category === currentCategory) && 
-                (p.name.toLowerCase().includes(search))
-            );
+            const filtered = allProducts.filter(p => (currentCategory === 'all' || p.category === currentCategory) && p.name.toLowerCase().includes(search));
 
             filtered.forEach(p => {
                 const img = p.mainImage || p.image || p.imageUrl || 'https://via.placeholder.com/400';
-                const desc = p.description || '';
                 grid.innerHTML += `
                     <div class="product-card">
-                        <img src="${img}" class="product-img" onerror="this.src='https://via.placeholder.com/400'">
+                        <img src="${img}" class="product-img">
                         <div class="flex-1">
                             <h3 class="text-[11px] font-black uppercase text-white mb-1 truncate">${p.name}</h3>
-                            <p id="desc-${p.id}" class="text-gray-500 text-[10px] leading-relaxed line-clamp-2 mb-2">${desc}</p>
-                            ${desc.length > 50 ? `<button onclick="toggleDesc('${p.id}')" id="btn-${p.id}" class="text-blue-500 text-[8px] font-black uppercase mb-4">Lire plus +</button>` : '<div class="mb-4"></div>'}
+                            <p id="desc-${p.id}" class="text-gray-500 text-[10px] leading-tight line-clamp-2 mb-2">${p.description || ''}</p>
+                            ${(p.description || '').length > 40 ? `<button onclick="toggleDesc('${p.id}')" id="btn-${p.id}" class="text-blue-500 text-[8px] font-black uppercase mb-4">Lire plus +</button>` : '<div class="mb-4"></div>'}
                         </div>
                         <div class="mt-auto">
-                            <div class="flex justify-between items-center mb-4">
-                                <span class="text-lg font-black text-white">${p.price}€</span>
-                                <span class="text-[8px] text-green-400 font-bold uppercase">Stock OK</span>
-                            </div>
-                            <button onclick="addToCart('${p.id}', '${p.name.replace(/'/g, "\\'")}', ${p.price}, '${img}')" class="w-full bg-white text-black py-3 rounded-xl font-black text-[10px] uppercase hover:bg-blue-600 hover:text-white transition-all">Ajouter</button>
+                            <span class="text-lg font-black text-white block mb-4">${p.price}€</span>
+                            <button onclick="addToCart('${p.id}', '${p.name.replace(/'/g, "\\'")}', ${p.price}, '${img}')" class="w-full bg-white text-black py-3 rounded-xl font-black text-[10px] uppercase hover:bg-blue-600 hover:text-white transition-all shadow-lg">Acheter</button>
                         </div>
                     </div>`;
             });
@@ -201,8 +201,7 @@
 
         window.addToCart = (id, name, price, img) => {
             const existing = cart.find(i => i.id === id);
-            if (existing) { existing.qty += 1; } 
-            else { cart.push({ id, name, price, img, qty: 1 }); }
+            if (existing) { existing.qty += 1; } else { cart.push({ id, name, price, img, qty: 1 }); }
             updateCart();
             if (!document.getElementById('cart-sidebar').classList.contains('cart-open')) toggleCart();
         };
@@ -219,13 +218,10 @@
         function updateCart() {
             const container = document.getElementById('cart-items');
             const totalDisplay = document.getElementById('cart-total');
-            const countDisplay = document.getElementById('cart-count');
-            
             localStorage.setItem('cart', JSON.stringify(cart));
-            countDisplay.innerText = cart.reduce((acc, i) => acc + i.qty, 0);
+            document.getElementById('cart-count').innerText = cart.reduce((acc, i) => acc + i.qty, 0);
             
             container.innerHTML = cart.length === 0 ? '<p class="text-center mt-20 opacity-20 text-[10px] font-black uppercase">Vide</p>' : "";
-
             let total = 0;
             cart.forEach(item => {
                 total += (item.price * item.qty);
@@ -233,7 +229,7 @@
                     <div class="flex gap-4 items-center bg-white/5 p-4 rounded-2xl mb-3 border border-white/5">
                         <img src="${item.img}" class="w-12 h-12 rounded-lg object-cover">
                         <div class="flex-1">
-                            <h4 class="text-[9px] font-black uppercase text-white truncate w-24">${item.name}</h4>
+                            <h4 class="text-[9px] font-black uppercase truncate w-24">${item.name}</h4>
                             <p class="text-blue-500 font-bold text-xs">${item.price}€</p>
                         </div>
                         <div class="flex items-center gap-2">
@@ -251,11 +247,9 @@
             const container = document.getElementById('paypal-button-container');
             container.innerHTML = ""; if (amount <= 0) return;
             paypal.Buttons({
-                style: { layout: 'vertical', color: 'blue', shape: 'pill', label: 'checkout' },
+                style: { layout: 'vertical', color: 'blue', shape: 'pill' },
                 createOrder: (data, actions) => actions.order.create({ purchase_units: [{ amount: { value: amount.toFixed(2) } }] }),
-                onApprove: (data, actions) => actions.order.capture().then(() => { 
-                    alert("Merci !"); cart = []; updateCart(); toggleCart(); 
-                })
+                onApprove: (data, actions) => actions.order.capture().then(() => { alert("Merci !"); cart = []; updateCart(); toggleCart(); })
             }).render('#paypal-button-container');
         }
 
