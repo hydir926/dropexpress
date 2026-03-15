@@ -8,32 +8,59 @@
     <style>
         body { background: #050505; color: #fff; font-family: sans-serif; padding: 15px; }
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; padding: 20px; }
-        input, textarea { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 12px; border-radius: 12px; margin-bottom: 10px; outline: none; font-size: 14px; }
-        .btn-blue { background: #2563eb; width: 100%; padding: 15px; border-radius: 12px; font-weight: 800; text-transform: uppercase; font-size: 12px; }
+        input, textarea, select { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 12px; border-radius: 12px; margin-bottom: 10px; outline: none; font-size: 14px; }
+        select { cursor: pointer; appearance: none; }
+        .btn-blue { background: #2563eb; width: 100%; padding: 15px; border-radius: 12px; font-weight: 800; text-transform: uppercase; font-size: 12px; transition: 0.3s; }
+        .btn-blue:hover { background: #1d4ed8; }
+        .btn-blue:disabled { opacity: 0.5; cursor: not-allowed; }
         .img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid #333; }
+        .label-admin { display: block; margin-bottom: 5px; text-[10px] font-bold text-blue-500 uppercase tracking-widest; margin-left: 5px; }
     </style>
 </head>
 <body>
     <div class="max-w-xl mx-auto">
-        <h1 class="text-xl font-black italic mb-6 text-blue-500 uppercase italic">ADMIN PANEL</h1>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-xl font-black italic text-blue-500 uppercase italic">ADMIN PANEL</h1>
+            <a href="index.html" class="text-[9px] font-bold text-gray-500 uppercase border border-gray-800 px-3 py-1 rounded-full">Voir Boutique</a>
+        </div>
 
         <div class="card mb-8">
-            <h2 id="form-title" class="text-[10px] font-bold text-gray-500 uppercase mb-4 tracking-widest">Ajouter / Modifier</h2>
-            <input type="hidden" id="edit-id">
-            <input type="text" id="p-name" placeholder="Nom du produit">
-            <input type="number" id="p-price" placeholder="Prix (€)">
-            <textarea id="p-desc" placeholder="Description..." rows="3"></textarea>
+            <h2 id="form-title" class="text-[10px] font-bold text-gray-400 uppercase mb-4 tracking-widest text-center">Ajouter ou Modifier un produit</h2>
             
-            <label class="block mb-2 text-[10px] font-bold text-blue-500 uppercase">Photos</label>
+            <input type="hidden" id="edit-id">
+            
+            <label class="label-admin">Nom de l'article</label>
+            <input type="text" id="p-name" placeholder="Ex: Projecteur Galaxie">
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="label-admin">Prix (€)</label>
+                    <input type="number" id="p-price" placeholder="29.99">
+                </div>
+                <div>
+                    <label class="label-admin">Catégorie</label>
+                    <select id="p-category">
+                        <option value="High-Tech">High-Tech</option>
+                        <option value="Déco">Déco</option>
+                        <option value="Accessoires">Accessoires</option>
+                    </select>
+                </div>
+            </div>
+
+            <label class="label-admin">Description</label>
+            <textarea id="p-desc" placeholder="Détails du produit..." rows="3"></textarea>
+            
+            <label class="label-admin">Photos (Première = Image principale)</label>
             <input type="file" id="p-files" multiple accept="image/*" class="text-xs">
             <div id="preview-container" class="flex flex-wrap gap-2 mb-6 mt-2"></div>
             
             <button onclick="saveData()" id="btn-save" class="btn-blue">Publier l'article</button>
-            <button onclick="location.reload()" id="btn-cancel" class="hidden w-full mt-2 text-[10px] font-bold text-gray-500 uppercase">Annuler</button>
+            <button onclick="location.reload()" id="btn-cancel" class="hidden w-full mt-2 text-[10px] font-bold text-gray-500 uppercase">Annuler la modification</button>
         </div>
 
+        <h3 class="text-[10px] font-bold text-gray-600 uppercase mb-4 tracking-widest ml-2">Catalogue Actuel</h3>
         <div id="products-list" class="space-y-3">
-            <p class="text-center text-gray-700 text-xs italic">Chargement du catalogue...</p>
+            <p class="text-center text-gray-700 text-xs italic py-10">Chargement du catalogue...</p>
         </div>
     </div>
 
@@ -41,7 +68,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { initializeFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIGURATION DIRECTE (Pas de fichier externe = Pas d'erreur 404)
         const firebaseConfig = {
             apiKey: "AIzaSyAs_xRDDAUjh_AemBZFBDCKQ9QXTNWuJ00",
             authDomain: "dropexpress-ba171.firebaseapp.com",
@@ -53,12 +79,13 @@
         const app = initializeApp(firebaseConfig);
         const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 
+        // SÉCURITÉ ADMIN
         const pass = prompt("Code Admin :");
         if(pass !== "AMIR2026") window.location.href="index.html";
 
         let imagesBase64 = [];
 
-        // Compression d'image
+        // COMPRESSION D'IMAGE (Optimisation Firebase)
         const compress = async (base64) => {
             return new Promise(resolve => {
                 const img = new Image(); img.src = base64;
@@ -74,9 +101,10 @@
             });
         };
 
+        // GESTION DES FICHIERS
         document.getElementById('p-files').onchange = async (e) => {
             imagesBase64 = [];
-            document.getElementById('preview-container').innerHTML = "⌛...";
+            document.getElementById('preview-container').innerHTML = "<span class='text-[10px] animate-pulse'>Compression...</span>";
             for (const file of e.target.files) {
                 const reader = new FileReader();
                 const raw = await new Promise(r => { reader.onload = (ev) => r(ev.target.result); reader.readAsDataURL(file); });
@@ -85,53 +113,87 @@
             document.getElementById('preview-container').innerHTML = imagesBase64.map(s => `<img src="${s}" class="img-preview">`).join('');
         };
 
+        // SAUVEGARDE (AJOUT OU MODIF)
         window.saveData = async () => {
             const btn = document.getElementById('btn-save');
             const id = document.getElementById('edit-id').value;
+            
             const payload = { 
                 name: document.getElementById('p-name').value, 
                 price: parseFloat(document.getElementById('p-price').value), 
+                category: document.getElementById('p-category').value, // Rangement automatique
                 description: document.getElementById('p-desc').value,
                 date: new Date().toISOString() 
             };
-            if(imagesBase64.length > 0) { payload.images = imagesBase64; payload.mainImage = imagesBase64[0]; }
+
+            if(!payload.name || isNaN(payload.price)) return alert("Veuillez remplir le nom et le prix.");
             
-            btn.disabled = true; btn.innerText = "ENVOI...";
+            // Si de nouvelles images sont choisies, on les ajoute
+            if(imagesBase64.length > 0) { 
+                payload.images = imagesBase64; 
+                payload.mainImage = imagesBase64[0]; 
+            }
+            
+            btn.disabled = true; btn.innerText = "ENVOI EN COURS...";
             try {
-                if(id) await updateDoc(doc(db, "products", id), payload);
-                else await addDoc(collection(db, "products"), payload);
+                if(id) {
+                    await updateDoc(doc(db, "products", id), payload);
+                    alert("Produit mis à jour !");
+                } else {
+                    if(imagesBase64.length === 0) {
+                        btn.disabled = false; btn.innerText = "Publier l'article";
+                        return alert("Ajoutez au moins une photo !");
+                    }
+                    await addDoc(collection(db, "products"), payload);
+                    alert("Produit publié !");
+                }
                 location.reload();
-            } catch (e) { alert(e.message); btn.disabled = false; }
+            } catch (e) { 
+                alert("Erreur : " + e.message); 
+                btn.disabled = false; 
+                btn.innerText = "Publier l'article";
+            }
         };
 
+        // LISTE SYNCHRONISÉE
         onSnapshot(collection(db, "products"), snap => {
             const list = document.getElementById('products-list');
             list.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                const img = p.mainImage || (p.images && p.images[0]) || p.image || '';
+                const img = p.mainImage || (p.images && p.images[0]) || '';
                 const item = document.createElement('div');
                 item.className = "card flex justify-between items-center py-3 mb-2";
                 item.innerHTML = `
-                    <div class="flex items-center gap-3 cursor-pointer">
-                        <img src="${img}" class="w-12 h-12 rounded-lg object-cover">
+                    <div class="flex items-center gap-3 cursor-pointer group">
+                        <img src="${img}" class="w-12 h-12 rounded-lg object-cover border border-white/5 group-hover:border-blue-500 transition">
                         <div>
                             <p class="font-bold text-[10px] uppercase text-white">${p.name}</p>
-                            <p class="text-blue-500 font-bold text-[10px]">${p.price}€</p>
+                            <p class="text-blue-500 font-bold text-[10px]">${p.price}€ <span class="text-gray-600 ml-2 font-normal">(${p.category})</span></p>
                         </div>
                     </div>
-                    <button class="text-red-500 text-[10px] font-black uppercase px-2">Suppr</button>`;
+                    <button class="text-red-500 text-[9px] font-black uppercase px-3 hover:bg-red-500/10 py-2 rounded-lg transition">Suppr</button>`;
                 
+                // Charger dans le formulaire pour modifier
                 item.querySelector('div').onclick = () => {
                     document.getElementById('edit-id').value = d.id;
                     document.getElementById('p-name').value = p.name;
                     document.getElementById('p-price').value = p.price;
+                    document.getElementById('p-category').value = p.category || "High-Tech";
                     document.getElementById('p-desc').value = p.description || "";
-                    document.getElementById('btn-save').innerText = "Mettre à jour";
+                    document.getElementById('btn-save').innerText = "Enregistrer les modifications";
                     document.getElementById('btn-cancel').classList.remove('hidden');
-                    window.scrollTo(0,0);
+                    document.getElementById('form-title').innerText = "MODE ÉDITION : " + p.name;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 };
-                item.querySelector('button').onclick = async () => { if(confirm("Supprimer ?")) await deleteDoc(doc(db, "products", d.id)); };
+
+                // Supprimer
+                item.querySelector('button').onclick = async (e) => { 
+                    e.stopPropagation();
+                    if(confirm("Supprimer définitivement cet article ?")) {
+                        await deleteDoc(doc(db, "products", d.id));
+                    }
+                };
                 list.appendChild(item);
             });
         });
