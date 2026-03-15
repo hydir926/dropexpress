@@ -3,63 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DropExpress | Le futur du shopping</title>
+    <title>DropExpress | Boutique</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000; color: #fff; margin: 0; overflow-x: hidden; }
+        
+        /* Grille optimisée : 2 colonnes sur mobile, 3 sur tablette/PC */
+        .product-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+            padding: 12px;
+        }
+        @media (min-width: 768px) {
+            .product-grid { grid-template-columns: repeat(3, 1fr); gap: 25px; padding: 40px; }
+        }
+
+        .product-card { 
+            background: #0a0a0a; 
+            border: 1px solid #1a1a1a; 
+            border-radius: 1.5rem; 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; 
+        }
+
+        /* Image plus petite pour le mode 2 colonnes */
+        .product-img { 
+            width: 100%; 
+            height: 160px; 
+            object-cover: cover; 
+            border-radius: 1.2rem; 
+            margin-bottom: 10px; 
+        }
+
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
         .cart-sidebar { position: fixed; right: 0; top: 0; height: 100%; width: 100%; max-width: 400px; background: #0a0a0a; transform: translateX(100%); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; }
         .cart-open { transform: translateX(0); box-shadow: -20px 0 50px rgba(0,0,0,0.9); }
-        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 2rem; padding: 1.5rem; display: flex; flex-direction: column; height: 100%; }
-        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 12px; border-radius: 12px; margin-bottom: 10px; outline: none; }
+        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 10px; border-radius: 10px; margin-bottom: 8px; outline: none; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 py-5 px-6 flex justify-between items-center">
-        <span class="text-xl font-black italic uppercase tracking-tighter">DROP<span class="text-blue-500">EXPRESS</span></span>
-        <div class="flex items-center gap-3">
+    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 py-4 px-5 flex justify-between items-center">
+        <span class="text-lg font-black italic uppercase tracking-tighter">DROP<span class="text-blue-500">EXPRESS</span></span>
+        <div class="flex items-center gap-2">
             <div id="auth-status">
-                <a href="connexion.html" class="text-[10px] font-black uppercase tracking-widest border border-white/20 px-4 py-2 rounded-full hover:bg-white hover:text-black transition">Connexion</a>
+                <a href="connexion.html" class="text-[9px] font-black uppercase border border-white/20 px-3 py-2 rounded-full">Connexion</a>
             </div>
-            <button onclick="toggleCart()" class="bg-blue-600 text-white px-4 py-2 rounded-full font-bold text-xs flex items-center gap-2 shadow-lg shadow-blue-600/20">
-                <span class="text-sm">🛒</span> <span id="cart-count">0</span>
+            <button onclick="toggleCart()" class="bg-blue-600 text-white px-3 py-2 rounded-full font-bold text-[10px] flex items-center gap-1">
+                <span>🛒</span> <span id="cart-count">0</span>
             </button>
         </div>
     </nav>
 
-    <section class="h-[60vh] flex items-center justify-center text-center px-6 bg-black">
-        <div>
-            <h1 class="text-5xl md:text-7xl font-black mb-4 uppercase leading-tight">
-                Le futur du <br> shopping <br> 
-                <span class="text-blue-500 italic">commence ici.</span>
-            </h1>
-            <p class="text-gray-400 font-medium text-sm md:text-base max-w-lg mx-auto leading-relaxed">
-                Articles exclusifs. Livraison mondiale. <br> Paiement 100% sécurisé.
-            </p>
-        </div>
+    <section class="py-12 text-center px-6">
+        <h1 class="text-4xl font-black mb-2 uppercase leading-none italic">
+            Le futur du <br> <span class="text-blue-500">shopping</span>
+        </h1>
+        <p class="text-gray-500 font-bold uppercase tracking-widest text-[8px]">Articles exclusifs • Paiement sécurisé</p>
     </section>
 
-    <section class="max-w-7xl mx-auto px-6 py-12">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="product-grid">
-            <p class="text-center col-span-full text-gray-800 animate-pulse font-bold uppercase text-[10px]">Chargement des pépites...</p>
+    <section class="max-w-7xl mx-auto">
+        <div class="product-grid" id="product-grid">
+            <p class="text-center col-span-full text-gray-800 animate-pulse text-[10px] uppercase font-bold">Mise à jour du stock...</p>
         </div>
     </section>
 
     <div id="cart-sidebar" class="cart-sidebar">
-        <div class="p-8 border-b border-white/5 flex justify-between items-center">
-            <h2 class="text-xl font-black italic uppercase">Mon Panier</h2>
+        <div class="p-6 border-b border-white/5 flex justify-between items-center">
+            <h2 class="text-lg font-black italic uppercase">Mon Panier</h2>
             <button onclick="toggleCart()" class="text-3xl">&times;</button>
         </div>
-        <div id="cart-items" class="p-6 flex-1 overflow-y-auto"></div>
-        <div class="p-8 bg-[#050505] border-t border-white/5">
-            <input type="text" id="cust-name" placeholder="Nom Complet" class="mb-2">
-            <input type="tel" id="cust-phone" placeholder="Téléphone" class="mb-2">
-            <input type="text" id="cust-address" placeholder="Adresse complète" class="mb-4">
-            <div class="flex justify-between text-2xl font-black mb-6">
-                <span class="text-xs uppercase text-gray-500 self-center">Total</span>
+        <div id="cart-items" class="p-4 flex-1 overflow-y-auto"></div>
+        <div class="p-6 bg-[#050505] border-t border-white/5">
+            <input type="text" id="cust-name" placeholder="Nom">
+            <input type="text" id="cust-address" placeholder="Adresse">
+            <div class="flex justify-between text-xl font-black my-4">
+                <span class="text-[10px] uppercase text-gray-500 self-center">Total</span>
                 <span id="cart-total" class="text-blue-500">0€</span>
             </div>
             <div id="paypal-button-container"></div>
@@ -83,15 +108,15 @@
         const db = initializeFirestore(app, { experimentalForceLongPolling: true });
         const auth = getAuth(app);
 
-        // --- AUTH ---
+        // AUTH
         onAuthStateChanged(auth, (user) => {
             const box = document.getElementById('auth-status');
-            if (user) box.innerHTML = `<button onclick="window.logout()" class="text-[9px] font-black uppercase tracking-widest bg-white text-black px-4 py-2 rounded-full">Déconnexion</button>`;
-            else box.innerHTML = `<a href="connexion.html" class="text-[9px] font-black uppercase tracking-widest border border-white/20 px-4 py-2 rounded-full">Connexion</a>`;
+            if (user) box.innerHTML = `<button onclick="window.logout()" class="text-[8px] font-black uppercase bg-white text-black px-3 py-2 rounded-full">Logout</button>`;
+            else box.innerHTML = `<a href="connexion.html" class="text-[8px] font-black uppercase border border-white/20 px-3 py-2 rounded-full">Connexion</a>`;
         });
         window.logout = () => signOut(auth).then(() => location.reload());
 
-        // --- PANIER ---
+        // PANIER
         let cart = [];
         window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('cart-open');
         window.addToCart = (name, price) => { cart.push({ name, price }); updateCart(); toggleCart(); };
@@ -99,13 +124,13 @@
         function updateCart() {
             const container = document.getElementById('cart-items');
             let total = 0; container.innerHTML = "";
-            cart.forEach(item => { total += item.price; container.innerHTML += `<div class="flex justify-between bg-white/5 p-4 rounded-2xl mb-2 text-[10px] font-bold uppercase"><span>${item.name}</span><b class="text-blue-500">${item.price}€</b></div>`; });
+            cart.forEach(item => { total += item.price; container.innerHTML += `<div class="flex justify-between bg-white/5 p-3 rounded-xl mb-2 text-[9px] font-bold uppercase"><span>${item.name}</span><b class="text-blue-500">${item.price}€</b></div>`; });
             document.getElementById('cart-total').innerText = total + "€";
             document.getElementById('cart-count').innerText = cart.length;
             if(total > 0) initPayPal(total);
         }
 
-        // --- PRODUITS (AVEC TITRE ET LIRE PLUS) ---
+        // PRODUITS (2 COLONNES)
         onSnapshot(collection(db, "products"), snap => {
             const grid = document.getElementById('product-grid');
             grid.innerHTML = "";
@@ -117,26 +142,16 @@
 
                 grid.innerHTML += `
                     <div class="product-card">
-                        <img src="${img}" class="w-full h-72 object-cover rounded-[1.5rem] mb-5">
-                        <h3 class="text-xl font-extrabold uppercase tracking-tight mb-2 text-white">${p.name}</h3>
-                        <div class="flex-1">
-                            <p id="desc-${id}" class="text-gray-500 text-[13px] leading-relaxed line-clamp-3">${desc}</p>
-                            ${desc.length > 80 ? `<button onclick="toggleText('${id}')" id="btn-${id}" class="text-blue-500 text-[10px] font-black uppercase mt-2 tracking-widest">Lire plus +</button>` : ""}
-                        </div>
-                        <div class="flex justify-between items-center mt-6 pt-5 border-t border-white/5">
-                            <span class="text-2xl font-black text-blue-500">${p.price}€</span>
-                            <button onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-white text-black px-6 py-2.5 rounded-xl font-black text-[10px] uppercase">Acheter</button>
+                        <img src="${img}" class="product-img">
+                        <h3 class="text-[11px] font-black uppercase tracking-tight mb-1 text-white truncate">${p.name}</h3>
+                        <p id="desc-${id}" class="text-gray-500 text-[9px] leading-tight line-clamp-2 mb-2">${desc}</p>
+                        <div class="mt-auto pt-2 border-t border-white/5 flex justify-between items-center">
+                            <span class="text-sm font-black text-blue-500">${p.price}€</span>
+                            <button onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-white text-black px-3 py-1.5 rounded-lg font-black text-[8px] uppercase">Prendre</button>
                         </div>
                     </div>`;
             });
         });
-
-        window.toggleText = (id) => {
-            const p = document.getElementById(`desc-${id}`);
-            const btn = document.getElementById(`btn-${id}`);
-            if (p.classList.contains('line-clamp-3')) { p.classList.remove('line-clamp-3'); btn.innerText = "Réduire -"; }
-            else { p.classList.add('line-clamp-3'); btn.innerText = "Lire plus +"; }
-        };
 
         function initPayPal(total) {
             document.getElementById('paypal-button-container').innerHTML = "";
@@ -145,7 +160,7 @@
                 onApprove: async (data, actions) => {
                     await actions.order.capture();
                     await addDoc(collection(db, "orders"), { client: document.getElementById('cust-name').value, total: total + "€", date: new Date().toISOString() });
-                    alert("Succès !"); location.reload();
+                    alert("Payé !"); location.reload();
                 }
             }).render('#paypal-button-container');
         }
