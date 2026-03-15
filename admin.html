@@ -3,211 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Expert | DropExpress</title>
+    <title>DropExpress | Official Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
     <style>
-        body { background: #050505; color: #fff; font-family: sans-serif; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 2rem; }
-        input, textarea { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 15px; border-radius: 15px; outline: none; transition: 0.3s; }
-        input:focus { border-color: #2563eb !important; }
-        .edit-mode { border: 2px solid #2563eb !important; box-shadow: 0 0 20px rgba(37, 99, 235, 0.2); }
-        #preview-container img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid #333; }
-        .tab-btn.active { background: #2563eb; color: white; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000; color: #fff; margin: 0; overflow-x: hidden; }
+        .fade-in { animation: fadeIn 1s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .cart-sidebar { position: fixed; right: 0; top: 0; height: 100%; width: 100%; max-width: 450px; background: #0a0a0a; transform: translateX(100%); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; overflow-y: auto; }
+        .cart-open { transform: translateX(0); }
+        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 2.5rem; padding: 1.2rem; transition: 0.3s; height: 100%; display: flex; flex-direction: column; }
+        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 14px; border-radius: 12px; margin-bottom: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-10">
-    <div class="max-w-4xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-2xl font-black italic uppercase">Drop<span class="text-blue-500">Express</span> Admin</h1>
-            <div class="flex bg-white/5 p-1 rounded-full border border-white/10">
-                <button onclick="switchTab('products')" id="btn-products" class="tab-btn active px-6 py-2 rounded-full font-bold text-xs">Produits</button>
-                <button onclick="switchTab('orders')" id="btn-orders" class="tab-btn px-6 py-2 rounded-full font-bold text-xs">Commandes</button>
-            </div>
-        </header>
+<body>
+    <nav class="sticky top-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/5 p-5 flex justify-between items-center px-6">
+        <span class="text-2xl font-black italic uppercase">DROP<span class="text-blue-500">EXPRESS</span></span>
+        <button onclick="toggleCart()" class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold">🛒 (<span id="cart-count">0</span>)</button>
+    </nav>
 
-        <div id="section-products" class="space-y-8">
-            <div id="form-card" class="card p-6 border-white/5 shadow-2xl transition-all">
-                <h2 id="form-title" class="text-lg font-bold mb-4 italic text-blue-500">Ajouter un produit</h2>
-                <input type="hidden" id="edit-id">
-                
-                <div class="space-y-4">
-                    <input type="text" id="p-name" placeholder="Nom du modèle">
-                    <input type="number" id="p-price" placeholder="Prix (€)">
-                    <textarea id="p-desc" placeholder="Description détaillée (matières, confort, style...)" class="h-24"></textarea>
-                    
-                    <div class="p-4 bg-white/5 rounded-2xl border-2 border-dashed border-white/10 text-center">
-                        <p class="text-[10px] font-black text-gray-500 uppercase mb-2">Photos du produit (Multiple)</p>
-                        <input type="file" id="p-files" accept="image/*" multiple class="text-xs border-none cursor-pointer">
-                        <div id="preview-container" class="flex flex-wrap gap-2 mt-3 justify-center"></div>
-                        <p id="keep-img-msg" class="hidden text-[10px] text-blue-400 mt-2 italic">Laisse vide pour garder les photos actuelles</p>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <button onclick="handleSave()" id="btn-save" class="flex-1 bg-blue-600 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition">Publier l'article</button>
-                        <button onclick="resetForm()" id="btn-cancel" class="hidden bg-red-500/10 text-red-500 px-6 rounded-2xl font-bold uppercase text-[10px]">Annuler</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="products-list" class="grid gap-3">
-                <p class="text-center text-gray-600 animate-pulse">Chargement de la collection...</p>
-            </div>
+    <section class="h-[70vh] flex items-center justify-center text-center px-6 bg-gradient-to-b from-blue-900/10 to-black">
+        <div class="fade-in">
+            <h1 class="text-5xl md:text-7xl font-black mb-4">Le futur du shopping<br><span class="text-blue-500 italic">commence ici.</span></h1>
+            <p class="text-gray-400 text-lg mb-8">Articles exclusifs. Livraison mondiale. <br><b>Paiement 100% sécurisé.</b></p>
+            <a href="#shop" class="bg-white text-black px-8 py-4 rounded-full font-black uppercase text-xs">Découvrir</a>
         </div>
+    </section>
 
-        <div id="section-orders" class="hidden space-y-4">
-            <div id="orders-list" class="grid gap-4">
-                <p class="text-center text-gray-600">Aucune commande pour le moment.</p>
-            </div>
+    <section id="shop" class="max-w-7xl mx-auto px-6 py-20">
+        <h2 class="text-3xl font-black italic mb-10 uppercase">Nouveautés</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" id="product-grid"></div>
+    </section>
+
+    <div id="cart-sidebar" class="cart-sidebar">
+        <div class="p-8 flex justify-between items-center border-b border-white/5">
+            <h2 class="text-2xl font-black italic">PANIER</h2>
+            <button onclick="toggleCart()" class="text-3xl">&times;</button>
+        </div>
+        <div id="cart-items" class="p-6 flex-1"></div>
+        <div class="p-8 bg-[#050505] border-t border-white/5">
+            <input type="text" id="cust-name" placeholder="Nom complet">
+            <input type="tel" id="cust-phone" placeholder="Téléphone">
+            <input type="text" id="cust-address" placeholder="Adresse complète">
+            <div class="flex justify-between text-2xl font-black my-4"><span>TOTAL</span><span id="cart-total" class="text-blue-500">0€</span></div>
+            <div id="paypal-button-container"></div>
         </div>
     </div>
 
     <script type="module">
-        import { db, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from "./firebase.js";
+        import { db, collection, onSnapshot, addDoc } from "./firebase.js";
+        let cart = [];
+
+        window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('cart-open');
         
-        // Sécurité
-        const pass = prompt("Accès Admin :");
-        if(pass !== "AMIR2026") window.location.href="index.html";
-
-        // Navigation entre onglets
-        window.switchTab = (tab) => {
-            document.getElementById('section-orders').classList.toggle('hidden', tab !== 'orders');
-            document.getElementById('section-products').classList.toggle('hidden', tab !== 'products');
-            document.getElementById('btn-products').classList.toggle('active', tab === 'products');
-            document.getElementById('btn-orders').classList.toggle('active', tab === 'orders');
+        window.addToCart = (name, price) => {
+            cart.push({ name, price });
+            updateCart();
+            toggleCart();
         };
 
-        // Gestion de l'aperçu des photos
-        let currentBase64List = [];
-        document.getElementById('p-files').addEventListener('change', function(e) {
-            const container = document.getElementById('preview-container');
-            container.innerHTML = "";
-            currentBase64List = [];
-            Array.from(e.target.files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    currentBase64List.push(event.target.result);
-                    const img = document.createElement('img');
-                    img.src = event.target.result;
-                    container.appendChild(img);
-                };
-                reader.readAsDataURL(file);
+        function updateCart() {
+            const container = document.getElementById('cart-items');
+            let total = 0; container.innerHTML = "";
+            cart.forEach((item, i) => {
+                total += item.price;
+                container.innerHTML += `<div class="flex justify-between mb-4 bg-white/5 p-4 rounded-xl"><span>${item.name}</span><b>${item.price}€</b></div>`;
             });
-        });
+            document.getElementById('cart-total').innerText = total + "€";
+            document.getElementById('cart-count').innerText = cart.length;
+            if(total > 0) initPayPal(total);
+        }
 
-        // Sauvegarder (Ajout ou Modification)
-        window.handleSave = async () => {
-            const id = document.getElementById('edit-id').value;
-            const name = document.getElementById('p-name').value;
-            const price = parseFloat(document.getElementById('p-price').value);
-            const desc = document.getElementById('p-desc').value;
-            const btn = document.getElementById('btn-save');
-
-            if(!name || !price) return alert("⚠️ Nom et Prix requis !");
-            
-            btn.innerText = "PATIENCE..."; btn.disabled = true;
-
-            const data = { 
-                name: name, 
-                price: price, 
-                description: desc, 
-                date: new Date().toISOString() 
-            };
-
-            if(currentBase64List.length > 0) {
-                data.images = currentBase64List;
-                data.mainImage = currentBase64List[0];
-            }
-
-            try {
-                if(id) {
-                    await updateDoc(doc(db, "products", id), data);
-                    alert("✅ Produit mis à jour !");
-                } else {
-                    if(currentBase64List.length === 0) throw new Error("Ajoute au moins une photo !");
-                    await addDoc(collection(db, "products"), data);
-                    alert("🔥 Nouveau drop publié !");
-                }
-                resetForm();
-            } catch(e) { 
-                alert("Erreur: " + e.message); 
-                btn.disabled = false; 
-                btn.innerText = "RÉESSAYER"; 
-            }
-        };
-
-        // Charger pour modification
-        window.editProduct = (id, name, price, desc) => {
-            document.getElementById('edit-id').value = id;
-            document.getElementById('p-name').value = name;
-            document.getElementById('p-price').value = price;
-            document.getElementById('p-desc').value = desc;
-            
-            document.getElementById('form-card').classList.add('edit-mode');
-            document.getElementById('form-title').innerText = "Modifier le produit";
-            document.getElementById('btn-save').innerText = "Enregistrer les modifications";
-            document.getElementById('btn-cancel').classList.remove('hidden');
-            document.getElementById('keep-img-msg').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        window.resetForm = () => {
-            document.getElementById('edit-id').value = "";
-            document.getElementById('p-name').value = "";
-            document.getElementById('p-price').value = "";
-            document.getElementById('p-desc').value = "";
-            document.getElementById('p-files').value = "";
-            document.getElementById('preview-container').innerHTML = "";
-            currentBase64List = [];
-            document.getElementById('form-card').classList.remove('edit-mode');
-            document.getElementById('form-title').innerText = "Ajouter un produit";
-            document.getElementById('btn-save').innerText = "Publier l'article";
-            document.getElementById('btn-save').disabled = false;
-            document.getElementById('btn-cancel').classList.add('hidden');
-            document.getElementById('keep-img-msg').classList.add('hidden');
-        };
-
-        // Chargement des produits
+        // AFFICHAGE DES PRODUITS
         onSnapshot(collection(db, "products"), snap => {
-            const list = document.getElementById('products-list'); 
-            list.innerHTML = "";
-            snap.forEach(d => {
-                const p = d.data();
-                const safeName = p.name.replace(/'/g, "\\'");
-                const safeDesc = (p.description || "").replace(/'/g, "\\'").replace(/\n/g, " ");
-                
-                list.innerHTML += `
-                <div class="card p-4 flex justify-between items-center border-white/5 hover:border-blue-500/30 transition">
-                    <div class="flex items-center gap-4 cursor-pointer" onclick="editProduct('${d.id}', '${safeName}', ${p.price}, '${safeDesc}')">
-                        <img src="${p.mainImage || p.images[0]}" class="w-14 h-14 rounded-xl object-cover border border-white/5">
-                        <div>
-                            <p class="font-bold text-xs uppercase italic">${p.name}</p>
-                            <p class="text-blue-500 font-black">${p.price}€</p>
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = "";
+            snap.forEach(doc => {
+                const p = doc.data();
+                // Gestion intelligente de l'image (nouveau vs ancien format)
+                const img = p.mainImage || (p.images && p.images[0]) || p.image;
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <img src="${img}" class="w-full h-72 object-cover rounded-3xl mb-4">
+                        <h3 class="text-xl font-bold uppercase">${p.name}</h3>
+                        <p class="text-gray-500 text-sm mt-2 italic flex-1">${p.description || ""}</p>
+                        <div class="flex justify-between items-center mt-6">
+                            <span class="text-2xl font-black text-blue-500">${p.price}€</span>
+                            <button onclick="addToCart('${p.name}', ${p.price})" class="bg-white text-black px-4 py-2 rounded-xl font-bold text-xs uppercase">Prendre</button>
                         </div>
-                    </div>
-                    <button onclick="deleteP('${d.id}')" class="text-red-500 font-bold bg-red-500/10 px-4 py-2 rounded-lg text-[10px] hover:bg-red-500 hover:text-white transition">SUPPRIMER</button>
-                </div>`;
+                    </div>`;
             });
         });
 
-        window.deleteP = async (id) => { if(confirm("Supprimer définitivement cet article ?")) await deleteDoc(doc(db, "products", id)); };
-
-        // Chargement des commandes
-        onSnapshot(query(collection(db, "orders"), orderBy("date", "desc")), snap => {
-            const list = document.getElementById('orders-list'); 
-            list.innerHTML = "";
-            snap.forEach(d => {
-                const o = d.data();
-                list.innerHTML += `
-                <div class="card p-5 border-white/5">
-                    <div class="flex justify-between mb-2">
-                        <p class="font-black text-blue-500 uppercase">${o.client}</p>
-                        <p class="font-black text-white">${o.total}</p>
-                    </div>
-                    <p class="text-gray-400 text-xs italic">📍 ${o.adresse}</p>
-                    <p class="text-blue-400 font-bold text-[10px] mt-2 tracking-widest">📞 ${o.telephone || 'N/A'}</p>
-                </div>`;
-            });
-        });
+        function initPayPal(total) {
+            document.getElementById('paypal-button-container').innerHTML = "";
+            paypal.Buttons({
+                createOrder: (data, actions) => actions.order.create({ purchase_units: [{ amount: { value: total } }] }),
+                onApprove: async (data, actions) => {
+                    await actions.order.capture();
+                    await addDoc(collection(db, "orders"), {
+                        client: document.getElementById('cust-name').value,
+                        telephone: document.getElementById('cust-phone').value,
+                        adresse: document.getElementById('cust-address').value,
+                        articles: cart, total: total + "€", date: new Date().toISOString()
+                    });
+                    alert("Commande réussie !");
+                    cart = []; updateCart(); toggleCart();
+                }
+            }).render('#paypal-button-container');
+        }
     </script>
 </body>
 </html>
