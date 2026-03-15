@@ -9,65 +9,65 @@
     <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #000; color: #fff; margin: 0; overflow-x: hidden; }
-        /* Sidebar du panier */
         .cart-sidebar { position: fixed; right: 0; top: 0; height: 100%; width: 100%; max-width: 400px; background: #0a0a0a; transform: translateX(100%); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; }
         .cart-open { transform: translateX(0); box-shadow: -20px 0 50px rgba(0,0,0,0.9); }
-        /* Cartes produits */
-        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 2rem; padding: 1.2rem; display: flex; flex-direction: column; height: 100%; transition: 0.3s; }
-        .product-card:hover { border-color: #2563eb; }
-        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 12px; border-radius: 12px; margin-bottom: 10px; outline: none; font-size: 14px; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 2rem; padding: 1.2rem; height: 100%; display: flex; flex-direction: column; }
+        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; width: 100%; padding: 14px; border-radius: 12px; margin-bottom: 10px; outline: none; }
     </style>
 </head>
 <body>
 
-    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 py-4 px-5 md:px-10 flex justify-between items-center">
-        <span class="text-xl md:text-2xl font-black italic uppercase tracking-tighter">
-            DROP<span class="text-blue-500">EXPRESS</span>
-        </span>
+    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 py-5 px-6 flex justify-between items-center">
+        <span class="text-xl font-black italic uppercase tracking-tighter">DROP<span class="text-blue-500">EXPRESS</span></span>
         
         <div class="flex items-center gap-3">
             <div id="auth-status">
-                <a href="login.html" class="text-[10px] font-black uppercase tracking-widest border border-white/20 px-4 py-2 rounded-full hover:bg-white hover:text-black transition duration-300">
-                    Connexion
-                </a>
+                <button onclick="toggleAuthModal()" class="text-[10px] font-black uppercase tracking-widest border border-white/20 px-4 py-2 rounded-full">Connexion</button>
             </div>
-            
-            <button onclick="toggleCart()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-bold text-xs flex items-center gap-2 transition duration-300 shadow-lg shadow-blue-600/20">
-                <span class="text-sm">🛒</span>
-                <span id="cart-count">0</span>
+            <button onclick="toggleCart()" class="bg-blue-600 text-white px-4 py-2 rounded-full font-bold text-xs flex items-center gap-2 shadow-lg shadow-blue-600/20">
+                <span class="text-sm">🛒</span> <span id="cart-count">0</span>
             </button>
         </div>
     </nav>
 
-    <section class="h-[45vh] flex items-center justify-center text-center px-6 bg-gradient-to-b from-blue-900/20 to-black">
+    <div id="auth-modal" class="modal">
+        <div class="bg-[#0a0a0a] border border-white/10 p-8 rounded-[2.5rem] w-full max-w-sm relative">
+            <button onclick="toggleAuthModal()" class="absolute top-5 right-6 text-2xl text-gray-500">&times;</button>
+            <h2 id="auth-title" class="text-xl font-black italic mb-6 uppercase text-center">Connexion</h2>
+            <input type="email" id="auth-email" placeholder="Email">
+            <input type="password" id="auth-pass" placeholder="Mot de passe">
+            <button onclick="handleAuth()" id="btn-auth-submit" class="w-full bg-blue-600 py-4 rounded-xl font-black uppercase text-xs tracking-widest mb-4">Valider</button>
+            <p class="text-center text-[10px] text-gray-500 uppercase font-bold tracking-widest cursor-pointer" onclick="switchAuthMode()" id="auth-switch">Pas de compte ? S'inscrire</p>
+        </div>
+    </div>
+
+    <section class="h-[40vh] flex items-center justify-center text-center px-6 bg-gradient-to-b from-blue-900/20 to-black">
         <div>
-            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase italic tracking-tighter">VOTRE <span class="text-blue-500">STYLE</span></h1>
+            <h1 class="text-6xl font-black mb-2 uppercase italic tracking-tighter">VOTRE <span class="text-blue-500">STYLE</span></h1>
             <p class="text-gray-400 font-bold uppercase tracking-[0.3em] text-[10px]">Exclusivités & Drops Limités</p>
         </div>
     </section>
 
-    <section class="max-w-7xl mx-auto px-6 py-12">
+    <section class="max-w-7xl mx-auto px-6 py-10">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="product-grid">
-            <p class="text-center col-span-full text-gray-700 animate-pulse uppercase font-bold text-xs tracking-widest">Initialisation du stock...</p>
+            <p class="text-center col-span-full text-gray-800 animate-pulse text-xs font-bold uppercase">Connexion au stock...</p>
         </div>
     </section>
 
     <div id="cart-sidebar" class="cart-sidebar">
         <div class="p-8 border-b border-white/5 flex justify-between items-center">
             <h2 class="text-xl font-black italic uppercase">Mon Panier</h2>
-            <button onclick="toggleCart()" class="text-3xl text-gray-500 hover:text-white">&times;</button>
+            <button onclick="toggleCart()" class="text-3xl">&times;</button>
         </div>
-        <div id="cart-items" class="p-6 flex-1 overflow-y-auto space-y-3"></div>
+        <div id="cart-items" class="p-6 flex-1 overflow-y-auto"></div>
         <div class="p-8 bg-[#050505] border-t border-white/5">
-            <div class="space-y-2 mb-4">
-                <input type="text" id="cust-name" placeholder="Nom Complet">
-                <input type="tel" id="cust-phone" placeholder="Téléphone">
-                <input type="text" id="cust-address" placeholder="Adresse de livraison">
-            </div>
+            <input type="text" id="cust-name" placeholder="Nom Complet">
+            <input type="tel" id="cust-phone" placeholder="Téléphone">
+            <input type="text" id="cust-address" placeholder="Adresse complète">
             <div class="flex justify-between text-2xl font-black mb-6">
                 <span class="text-sm uppercase text-gray-500 self-center">Total</span>
-                <span id="cart-total" class="text-blue-500 font-black">0€</span>
+                <span id="cart-total" class="text-blue-500">0€</span>
             </div>
             <div id="paypal-button-container"></div>
         </div>
@@ -76,7 +76,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { initializeFirestore, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAs_xRDDAUjh_AemBZFBDCKQ9QXTNWuJ00",
@@ -90,40 +90,47 @@
         const db = initializeFirestore(app, { experimentalForceLongPolling: true });
         const auth = getAuth(app);
 
-        // --- AUTH STATUS ---
+        // --- AUTH LOGIC (MODAL) ---
+        let isLoginMode = true;
+        window.toggleAuthModal = () => {
+            const m = document.getElementById('auth-modal');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+        };
+        window.switchAuthMode = () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? "Connexion" : "Inscription";
+            document.getElementById('auth-switch').innerText = isLoginMode ? "Pas de compte ? S'inscrire" : "Déjà un compte ? Se connecter";
+        };
+        window.handleAuth = async () => {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            try {
+                if(isLoginMode) await signInWithEmailAndPassword(auth, email, pass);
+                else await createUserWithEmailAndPassword(auth, email, pass);
+                toggleAuthModal();
+            } catch(e) { alert("Erreur: " + e.message); }
+        };
+
         onAuthStateChanged(auth, (user) => {
-            const statusBox = document.getElementById('auth-status');
-            if (user) {
-                statusBox.innerHTML = `<button onclick="window.logout()" class="text-[9px] font-black uppercase tracking-widest bg-white text-black px-4 py-2 rounded-full shadow-lg shadow-white/10 transition">Déconnexion</button>`;
-            } else {
-                statusBox.innerHTML = `<a href="login.html" class="text-[9px] font-black uppercase tracking-widest border border-white/20 px-4 py-2 rounded-full hover:border-white transition">Connexion</a>`;
-            }
+            const box = document.getElementById('auth-status');
+            if (user) box.innerHTML = `<button onclick="window.logout()" class="text-[9px] font-black uppercase tracking-widest bg-white text-black px-4 py-2 rounded-full">Déconnexion</button>`;
+            else box.innerHTML = `<button onclick="toggleAuthModal()" class="text-[9px] font-black uppercase tracking-widest border border-white/20 px-4 py-2 rounded-full">Connexion</button>`;
         });
         window.logout = () => signOut(auth).then(() => location.reload());
 
-        // --- PANIER ---
+        // --- PANIER & PRODUITS ---
         let cart = [];
         window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('cart-open');
-        
-        window.addToCart = (name, price) => {
-            cart.push({ name, price });
-            updateCart();
-            if(!document.getElementById('cart-sidebar').classList.contains('cart-open')) toggleCart();
-        };
-
+        window.addToCart = (name, price) => { cart.push({ name, price }); updateCart(); toggleCart(); };
         function updateCart() {
             const container = document.getElementById('cart-items');
             let total = 0; container.innerHTML = "";
-            cart.forEach((item) => {
-                total += item.price;
-                container.innerHTML += `<div class="flex justify-between bg-white/5 p-4 rounded-2xl border border-white/5"><span class="text-[10px] font-bold uppercase tracking-tight">${item.name}</span><b class="text-blue-500 text-xs">${item.price}€</b></div>`;
-            });
+            cart.forEach(item => { total += item.price; container.innerHTML += `<div class="flex justify-between bg-white/5 p-4 rounded-2xl mb-2 text-[10px] font-bold uppercase"><span>${item.name}</span><b class="text-blue-500">${item.price}€</b></div>`; });
             document.getElementById('cart-total').innerText = total + "€";
             document.getElementById('cart-count').innerText = cart.length;
             if(total > 0) initPayPal(total);
         }
 
-        // --- PRODUITS ---
         onSnapshot(collection(db, "products"), snap => {
             const grid = document.getElementById('product-grid');
             grid.innerHTML = "";
@@ -133,42 +140,25 @@
                 const img = p.mainImage || (p.images && p.images[0]) || p.image || '';
                 grid.innerHTML += `
                     <div class="product-card">
-                        <img src="${img}" class="w-full h-72 object-cover rounded-[1.5rem] mb-5 shadow-2xl">
-                        <h3 class="text-xl font-extrabold uppercase tracking-tighter mb-2">${p.name}</h3>
-                        <div class="flex-1">
-                            <p id="desc-${id}" class="text-gray-500 text-[13px] leading-relaxed line-clamp-3">${p.description || ""}</p>
-                            ${(p.description || "").length > 100 ? `<button onclick="toggleText('${id}')" id="btn-${id}" class="text-blue-500 text-[10px] font-black uppercase mt-2 tracking-widest">Lire plus +</button>` : ""}
-                        </div>
-                        <div class="flex justify-between items-center mt-6 pt-5 border-t border-white/5">
+                        <img src="${img}" class="w-full h-72 object-cover rounded-[2rem] mb-4">
+                        <h3 class="text-xl font-bold uppercase tracking-tighter">${p.name}</h3>
+                        <p class="text-gray-500 text-xs italic flex-1 line-clamp-3 my-2">${p.description || ""}</p>
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
                             <span class="text-2xl font-black text-blue-500">${p.price}€</span>
-                            <button onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-white text-black px-6 py-2.5 rounded-xl font-black text-[10px] uppercase hover:bg-blue-500 hover:text-white transition duration-300">Ajouter</button>
+                            <button onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-white text-black px-6 py-2 rounded-xl font-black text-[10px] uppercase">Prendre</button>
                         </div>
                     </div>`;
             });
         });
 
-        window.toggleText = (id) => {
-            const p = document.getElementById(`desc-${id}`);
-            const btn = document.getElementById(`btn-${id}`);
-            if (p.classList.contains('line-clamp-3')) { p.classList.remove('line-clamp-3'); btn.innerText = "Réduire -"; }
-            else { p.classList.add('line-clamp-3'); btn.innerText = "Lire plus +"; }
-        };
-
-        // --- PAYPAL ---
         function initPayPal(total) {
             document.getElementById('paypal-button-container').innerHTML = "";
             paypal.Buttons({
                 createOrder: (data, actions) => actions.order.create({ purchase_units: [{ amount: { value: total } }] }),
                 onApprove: async (data, actions) => {
                     await actions.order.capture();
-                    await addDoc(collection(db, "orders"), {
-                        client: document.getElementById('cust-name').value,
-                        telephone: document.getElementById('cust-phone').value,
-                        adresse: document.getElementById('cust-address').value,
-                        articles: cart, total: total + "€", date: new Date().toISOString()
-                    });
-                    alert("Commande enregistrée !");
-                    cart = []; updateCart(); toggleCart();
+                    await addDoc(collection(db, "orders"), { client: document.getElementById('cust-name').value, articles: cart, total: total + "€", date: new Date().toISOString() });
+                    alert("Payé !"); location.reload();
                 }
             }).render('#paypal-button-container');
         }
