@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DropExpress | Boutique Officielle</title>
+    <title>DropExpress | Boutique</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
@@ -13,11 +13,10 @@
         @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 40px; } }
         .product-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; padding: 12px; display: flex; flex-direction: column; height: 100%; position: relative; }
         .product-img { width: 100%; height: 140px; object-fit: cover; border-radius: 1rem; margin-bottom: 10px; }
-        .badge-stock { position: absolute; top: 18px; right: 18px; background: #ef4444; color: white; font-size: 7px; font-weight: 900; padding: 3px 7px; border-radius: 4px; text-transform: uppercase; z-index: 10; }
         .cart-sidebar { position: fixed; right: 0; top: 0; height: 100%; width: 100%; max-width: 400px; background: #0a0a0a; transform: translateX(100%); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; border-left: 1px solid #1a1a1a; }
         .cart-open { transform: translateX(0); }
-        .category-btn { background: #111; border: 1px solid #222; color: #666; padding: 6px 15px; border-radius: 50px; font-size: 10px; font-weight: 800; text-transform: uppercase; transition: 0.3s; white-space: nowrap; }
-        .category-btn.active { background: #2563eb; border-color: #2563eb; color: white; }
+        input { background: #111 !important; border: 1px solid #222 !important; color: white !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
@@ -33,44 +32,59 @@
     </nav>
 
     <header class="pt-10 pb-6 text-center px-4">
-        <h1 class="text-3xl font-black mb-6 uppercase italic leading-none text-blue-500">BOUTIQUE</h1>
-        
+        <h1 class="text-3xl font-black mb-6 uppercase italic leading-none text-blue-500 tracking-tighter">SHOPPING</h1>
         <div class="max-w-md mx-auto mb-6">
-            <input type="text" id="search-input" oninput="filterProducts()" placeholder="Rechercher un article..." class="w-full bg-[#111] border border-white/10 rounded-xl px-5 py-3 text-sm outline-none focus:border-blue-500 transition">
-        </div>
-
-        <div class="flex gap-2 overflow-x-auto pb-4 justify-start md:justify-center no-scrollbar px-2">
-            <button class="category-btn active" onclick="setCategory('all', this)">Tous</button>
-            <button class="category-btn" onclick="setCategory('High-Tech', this)">High-Tech</button>
-            <button class="category-btn" onclick="setCategory('Déco', this)">Déco</button>
-            <button class="category-btn" onclick="setCategory('Accessoires', this)">Accessoires</button>
+            <input type="text" id="search-input" oninput="filterProducts()" placeholder="Rechercher un produit..." class="w-full rounded-xl px-5 py-3 text-sm outline-none focus:border-blue-500 transition">
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto min-h-[400px]">
+    <main class="max-w-7xl mx-auto min-h-[300px]">
         <div class="product-grid" id="product-grid"></div>
     </main>
 
-    <section class="py-16 px-6 border-t border-white/5 mt-10 bg-[#050505]">
-        <h2 class="text-center text-sm font-black uppercase tracking-widest mb-10">Avis de la <span class="text-blue-500">Communauté</span></h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <div class="bg-[#0a0a0a] p-6 rounded-2xl border border-white/5">
-                <div class="text-yellow-500 text-[10px] mb-2">⭐⭐⭐⭐⭐</div>
-                <p class="text-[11px] text-gray-400 italic leading-relaxed">"Reçu en 48h, le packaging est super propre. Je recommande !"</p>
-                <p class="text-[9px] font-black mt-4 uppercase text-blue-500">Alexandre K.</p>
-            </div>
-            <div class="bg-[#0a0a0a] p-6 rounded-2xl border border-white/5">
-                <div class="text-yellow-500 text-[10px] mb-2">⭐⭐⭐⭐⭐</div>
-                <p class="text-[11px] text-gray-400 italic">"Le support client est super réactif, ça fait plaisir."</p>
-                <p class="text-[9px] font-black mt-4 uppercase text-blue-500">Mélissa G.</p>
-            </div>
-            <div class="bg-[#0a0a0a] p-6 rounded-2xl border border-white/5">
-                <div class="text-yellow-500 text-[10px] mb-2">⭐⭐⭐⭐⭐</div>
-                <p class="text-[11px] text-gray-400 italic">"Des produits vraiment originaux qu'on ne voit pas partout."</p>
-                <p class="text-[9px] font-black mt-4 uppercase text-blue-500">Kevin D.</p>
-            </div>
+    <section class="py-16 px-6 max-w-4xl mx-auto border-t border-white/5 mt-20">
+        <h2 class="text-center text-xl font-black uppercase italic mb-8">Questions <span class="text-blue-500">Fréquentes</span></h2>
+        <div class="space-y-4">
+            <details class="group bg-white/5 p-4 rounded-2xl border border-white/5 cursor-pointer">
+                <summary class="flex justify-between items-center text-[10px] font-black uppercase list-none">
+                    📦 Quel est le délai de livraison ?
+                    <span class="group-open:rotate-180 transition-transform text-blue-500">▼</span>
+                </summary>
+                <p class="text-[10px] text-gray-500 mt-3 leading-relaxed">Nos produits sont expédiés sous 24h. La livraison prend en moyenne 48h à 72h pour la France métropolitaine.</p>
+            </details>
+
+            <details class="group bg-white/5 p-4 rounded-2xl border border-white/5 cursor-pointer">
+                <summary class="flex justify-between items-center text-[10px] font-black uppercase list-none">
+                    🛡️ Le paiement est-il sécurisé ?
+                    <span class="group-open:rotate-180 transition-transform text-blue-500">▼</span>
+                </summary>
+                <p class="text-[10px] text-gray-500 mt-3 leading-relaxed">Absolument. Nous utilisons le cryptage SSL et les services PayPal pour garantir que toutes vos transactions sont 100% sécurisées.</p>
+            </details>
+
+            <details class="group bg-white/5 p-4 rounded-2xl border border-white/5 cursor-pointer">
+                <summary class="flex justify-between items-center text-[10px] font-black uppercase list-none">
+                    🔄 Puis-je retourner mon article ?
+                    <span class="group-open:rotate-180 transition-transform text-blue-500">▼</span>
+                </summary>
+                <p class="text-[10px] text-gray-500 mt-3 leading-relaxed">Oui, vous disposez de 14 jours après réception pour nous renvoyer votre produit s'il ne vous convient pas.</p>
+            </details>
         </div>
     </section>
+
+    <footer class="bg-[#050505] border-t border-white/5 py-12 px-6 text-center mt-20">
+        <div class="mb-8 text-xl font-black italic uppercase tracking-tighter">DROP<span class="text-blue-500">EXPRESS</span></div>
+        <div class="flex justify-center gap-8 mb-8">
+            <a href="#" class="text-gray-500 hover:text-white transition text-[9px] font-black uppercase tracking-widest">Instagram</a>
+            <a href="#" class="text-gray-500 hover:text-white transition text-[9px] font-black uppercase tracking-widest">TikTok</a>
+            <a href="mailto:support@dropexpress.com" class="text-gray-500 hover:text-white transition text-[9px] font-black uppercase tracking-widest">Support</a>
+        </div>
+        <div class="flex justify-center gap-5 opacity-20 grayscale mb-6 scale-90">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" class="h-4" alt="PayPal">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" class="h-4" alt="Visa">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" class="h-4" alt="Mastercard">
+        </div>
+        <p class="text-[8px] text-gray-700 uppercase font-bold tracking-[2px]">© 2026 DropExpress — Design by Studio</p>
+    </footer>
 
     <div id="cart-sidebar" class="cart-sidebar flex flex-col">
         <div class="p-6 border-b border-white/5 flex justify-between items-center">
@@ -90,36 +104,18 @@
         const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 
         let allProducts = [];
-        let currentCategory = 'all';
-
-        // FILTRES & RECHERCHE
-        window.setCategory = (cat, btn) => {
-            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentCategory = cat;
-            renderProducts();
-        };
-
-        window.filterProducts = () => renderProducts();
 
         function renderProducts() {
             const grid = document.getElementById('product-grid');
             const search = document.getElementById('search-input').value.toLowerCase();
             grid.innerHTML = "";
-
-            const filtered = allProducts.filter(p => {
-                const matchSearch = p.name.toLowerCase().includes(search);
-                const matchCat = currentCategory === 'all' || p.category === currentCategory;
-                return matchSearch && matchCat;
-            });
-
-            filtered.forEach(p => {
+            allProducts.filter(p => p.name.toLowerCase().includes(search)).forEach(p => {
                 grid.innerHTML += `
                     <div class="product-card">
-                        <div class="badge-stock">Stock limité</div>
+                        <div class="absolute top-4 right-4 bg-red-600 text-[7px] font-black px-2 py-1 rounded uppercase">Stock limité</div>
                         <img src="${p.mainImage || p.image}" class="product-img">
-                        <h3 class="text-[10px] font-extrabold uppercase mb-1">${p.name}</h3>
-                        <div class="text-[8px] text-green-500 font-bold uppercase mb-2">⚡ Livraison Offerte</div>
+                        <h3 class="text-[10px] font-extrabold uppercase text-white mb-1">${p.name}</h3>
+                        <p class="text-green-500 text-[8px] font-bold uppercase mb-2">⚡ Livraison Offerte</p>
                         <div class="mt-auto flex flex-col gap-2">
                             <span class="text-sm font-black text-blue-500">${p.price}€</span>
                             <button onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-white text-black py-2 rounded-lg font-black text-[9px] uppercase">Acheter</button>
@@ -133,15 +129,15 @@
             renderProducts();
         });
 
-        // PANIER SIMPLIFIÉ
+        window.filterProducts = () => renderProducts();
+
         let cart = [];
         window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('cart-open');
         window.addToCart = (n, p) => { cart.push({n, p}); updateCart(); toggleCart(); };
         function updateCart() {
             document.getElementById('cart-count').innerText = cart.length;
-            const container = document.getElementById('cart-items');
-            container.innerHTML = "";
-            cart.forEach(i => container.innerHTML += `<div class="flex justify-between p-2 text-[10px] border-b border-white/5"><span>${i.n}</span><b>${i.p}€</b></div>`);
+            const container = document.getElementById('cart-items'); container.innerHTML = "";
+            cart.forEach(i => container.innerHTML += `<div class="flex justify-between p-3 bg-white/5 rounded-xl mb-2 text-[10px]"><span>${i.n}</span><b>${i.p}€</b></div>`);
         }
     </script>
 </body>
